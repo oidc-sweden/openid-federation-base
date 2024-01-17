@@ -1,6 +1,5 @@
 package se.swedenconnect.oidcfed.commons.utils;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -22,17 +21,14 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
-import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
-import se.swedenconnect.oidcfed.commons.data.oidcfed.EntityStatement;
-import se.swedenconnect.oidcfed.commons.process.chain.ChainValidationException;
-import se.swedenconnect.oidcfed.commons.process.metadata.PolicyTranslationException;
 import se.swedenconnect.oidcfed.commons.configuration.ValueType;
+import se.swedenconnect.oidcfed.commons.process.metadata.PolicyTranslationException;
 
 /**
  * Description
