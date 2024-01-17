@@ -10,11 +10,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.nimbusds.jose.JOSEException;
@@ -45,11 +44,10 @@ public class OidcUtils {
   public static final String URI_REGEXP = "^(http:\\/\\/|https:\\/\\/|urn:)[\\w\\W]*$";
 
   public static ObjectMapper getOidcObjectMapper() {
-    Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
-    ObjectMapper objectMapper = builder
-      .serializationInclusion(JsonInclude.Include.NON_NULL)
-      .build();
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     return objectMapper;
   }
 
