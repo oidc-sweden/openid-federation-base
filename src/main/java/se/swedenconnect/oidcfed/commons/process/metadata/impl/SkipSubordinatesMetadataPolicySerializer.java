@@ -1,25 +1,25 @@
 package se.swedenconnect.oidcfed.commons.process.metadata.impl;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
+import se.swedenconnect.oidcfed.commons.configuration.MetadataParameter;
+import se.swedenconnect.oidcfed.commons.data.metadata.policy.EntityTypeMetadataPolicy;
+import se.swedenconnect.oidcfed.commons.data.metadata.policy.MetadataParameterPolicy;
+import se.swedenconnect.oidcfed.commons.data.metadata.policy.SkipSubMetadataParameterPolicy;
+import se.swedenconnect.oidcfed.commons.process.metadata.MetadataPolicySerializer;
+import se.swedenconnect.oidcfed.commons.process.metadata.PolicyOperatorFactory;
+import se.swedenconnect.oidcfed.commons.process.metadata.PolicyProcessingException;
+import se.swedenconnect.oidcfed.commons.process.metadata.PolicyTranslationException;
+import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.PolicyOperator;
+import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.SkipSubordinatesPolicyOperator;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.lang.NonNull;
-
-import lombok.RequiredArgsConstructor;
-import se.swedenconnect.oidcfed.commons.configuration.MetadataParameter;
-import se.swedenconnect.oidcfed.commons.data.metadata.policy.MetadataParameterPolicy;
-import se.swedenconnect.oidcfed.commons.data.metadata.policy.EntityTypeMetadataPolicy;
-import se.swedenconnect.oidcfed.commons.process.metadata.MetadataPolicySerializer;
-import se.swedenconnect.oidcfed.commons.process.metadata.PolicyOperatorFactory;
-import se.swedenconnect.oidcfed.commons.process.metadata.PolicyProcessingException;
-import se.swedenconnect.oidcfed.commons.process.metadata.PolicyTranslationException;
-import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.SkipSubordinatesPolicyOperator;
-import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.PolicyOperator;
-
 /**
- * Metadata policy serializer using the current draft format. Serialization of policy for one Entity Type
+ * Metadata policy serializer that supports the deprecated skip subordinates policy operator.
  *
  * <p>
  * Note: This serializer does not distinguish between different types of Entities. This works as long
@@ -31,7 +31,7 @@ import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.PolicyO
  * </p>
  */
 @RequiredArgsConstructor
-public class StandardMetadataPolicySerializer implements MetadataPolicySerializer {
+public class SkipSubordinatesMetadataPolicySerializer implements MetadataPolicySerializer {
 
   private final PolicyOperatorFactory policyOperatorFactory;
   private final Map<String, MetadataParameter> supportedMetadataParametersMap;
@@ -48,6 +48,12 @@ public class StandardMetadataPolicySerializer implements MetadataPolicySerialize
       for (String operatorName : operatorKeySet) {
         policyOperatorsObject.put(operatorName, operators.get(operatorName).getPolicyOperatorValue());
       }
+      // If skip subordinates boolean is set, make sure that the corresponding policy operator is included
+      if (metadataParameterPolicy instanceof SkipSubMetadataParameterPolicy) {
+        if (((SkipSubMetadataParameterPolicy)metadataParameterPolicy).isSkipSubordinates()) {
+          policyOperatorsObject.put(SkipSubordinatesPolicyOperator.OPERATOR_NAME, Boolean.TRUE);
+        }
+      }
       metadataPolicyObject.put(metadataParameter, policyOperatorsObject);
     }
     return metadataPolicyObject;
@@ -63,7 +69,7 @@ public class StandardMetadataPolicySerializer implements MetadataPolicySerialize
         throw new PolicyProcessingException("Unsupported metadata parameter: " + metadataParameterName);
       }
       MetadataParameter metadataParameter = supportedMetadataParametersMap.get(metadataParameterName);
-      MetadataParameterPolicy.MetadataParameterPolicyBuilder parameterPolicyBuilder = MetadataParameterPolicy.builder(
+      SkipSubMetadataParameterPolicy.SkipSubMetadataParameterPolicyBuilder parameterPolicyBuilder = SkipSubMetadataParameterPolicy.builder(
         metadataParameter);
       Object parameterObj = jsonObject.get(metadataParameterName);
       Map<String, Object> metadataParameterObj;
@@ -85,6 +91,12 @@ public class StandardMetadataPolicySerializer implements MetadataPolicySerialize
           }
           // Ignoring unsupported non-critical policy operator
           continue;
+        }
+        // Check if this is a skip_subordinates policy operator
+        if (operatorName.equals(SkipSubordinatesPolicyOperator.OPERATOR_NAME)) {
+          if (((SkipSubordinatesPolicyOperator) policyOperator).getPolicyOperatorValue()) {
+            parameterPolicyBuilder.skipSubordinates(true);
+          }
         }
         // Add policy operator
         parameterPolicyBuilder.add(policyOperator);

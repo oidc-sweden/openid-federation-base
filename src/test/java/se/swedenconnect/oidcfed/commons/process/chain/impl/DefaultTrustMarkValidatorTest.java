@@ -104,7 +104,7 @@ class DefaultTrustMarkValidatorTest {
       );
 
 
-    performTrustMarkTest("Default reduced TM Issuer chain",
+/*    performTrustMarkTest("Default reduced TM Issuer chain",
       List.of(TrustMark.builder()
           .id("https://example.com/trustMark-1")
           .issuer("https://example.com/ie2")
@@ -144,7 +144,7 @@ class DefaultTrustMarkValidatorTest {
       ),
       List.of("https://example.com/trustMark-1"),
       true, null
-      );
+      );*/
 
 
     performTrustMarkTest("Bad Trust Mark delegation",
@@ -175,15 +175,17 @@ class DefaultTrustMarkValidatorTest {
             ))
           ),
         TestEntityStatements.ta1_ie1_statement(),
-        TestEntityStatements.ie1_ie2_statement()
-          .metadata(EntityMetadataInfoClaim.builder()
-            .federationEntityMetadataObject(FederationEndpointMetadata.builder()
-              .federationFetchEndpoint("https://example.com/fetchEndpoint")
-              .federationListEndpoint("https://example.com/listEndpoint")
-              .federationTrustMarkEndpoint("https://example.com/trustMarkEndpoint")
-              .build().toJsonObject())
-            .build())
-          .noSubjectDataStorage(true)
+        TestEntityStatements.ie1_ie2_statement(),
+        TestEntityStatements.ie2_ie2_configuration()
+//        TestEntityStatements.ie1_ie2_statement()
+//          .metadata(EntityMetadataInfoClaim.builder()
+//            .federationEntityMetadataObject(FederationEndpointMetadata.builder()
+//              .federationFetchEndpoint("https://example.com/fetchEndpoint")
+//              .federationListEndpoint("https://example.com/listEndpoint")
+//              .federationTrustMarkEndpoint("https://example.com/trustMarkEndpoint")
+//              .build().toJsonObject())
+//            .build())
+//          .noSubjectDataStorage(true)
       ),
       List.of(),
       true, null

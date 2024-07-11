@@ -1,10 +1,5 @@
 package se.swedenconnect.oidcfed.commons.data.metadata.policy;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,29 +13,40 @@ import se.swedenconnect.oidcfed.commons.process.metadata.impl.DefaultPolicyOpera
 import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.PolicyOperator;
 import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.SkipSubordinatesPolicyOperator;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Metadata policy parameter
  */
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Slf4j
-public class MetadataParameterPolicy {
+public class SkipSubMetadataParameterPolicy extends MetadataParameterPolicy {
 
-  public MetadataParameterPolicy(MetadataParameter parameter, Map<String, PolicyOperator> policyOperators) {
-    this.parameter = parameter;
-    this.policyOperators = policyOperators;
+  public SkipSubMetadataParameterPolicy(MetadataParameter parameter, Map<String, PolicyOperator> policyOperators) {
+    super(parameter, policyOperators);
+    this.skipSubordinates = false;
   }
 
-  protected MetadataParameter parameter;
-  protected Map<String, PolicyOperator> policyOperators = new HashMap<>();
+  protected boolean skipSubordinates;
 
+  @Override
   public MetadataParameterPolicy mergeWithSubordinate(MetadataParameterPolicy subordinateMetadataParameterPolicy)
     throws PolicyMergeException, PolicyTranslationException, PolicyProcessingException {
+    if (skipSubordinates) {
+      log.debug("Policy for metadata parameter {} is set to skip_subordinates. Skipping merge",
+        this.parameter.getName());
+      return this;
+    }
     if (subordinateMetadataParameterPolicy == null) {
       log.debug("Subordinate policy for metadata parameter {} is null. Skipping merge", this.parameter.getName());
       return this;
     }
-    MetadataParameterPolicyBuilder builder = MetadataParameterPolicy.builder(this.parameter);
+    SkipSubMetadataParameterPolicyBuilder builder = SkipSubMetadataParameterPolicy.builder(this.parameter);
     List<String> allPolicyOperatorNames = new ArrayList<>(this.policyOperators.keySet());
     Map<String, PolicyOperator> policyOperatorsToMerge = subordinateMetadataParameterPolicy.getPolicyOperators();
     policyOperatorsToMerge.keySet().stream()
@@ -65,50 +71,46 @@ public class MetadataParameterPolicy {
     return builder.build();
   }
 
-  public static MetadataParameterPolicyBuilder builder(MetadataParameter parameter) {
-    return new MetadataParameterPolicyBuilder(parameter);
+  public static SkipSubMetadataParameterPolicyBuilder builder(MetadataParameter parameter) {
+    return new SkipSubMetadataParameterPolicyBuilder(parameter);
   }
 
-  public static MetadataParameterPolicyBuilder builder(MetadataParameter parameter,
+  public static SkipSubMetadataParameterPolicyBuilder builder(MetadataParameter parameter,
     PolicyOperatorFactory policyOperatorFactory) {
-    return new MetadataParameterPolicyBuilder(parameter, policyOperatorFactory);
+    return new SkipSubMetadataParameterPolicyBuilder(parameter, policyOperatorFactory);
   }
 
-  public static class MetadataParameterPolicyBuilder {
+  public static class SkipSubMetadataParameterPolicyBuilder extends MetadataParameterPolicy.MetadataParameterPolicyBuilder {
 
-    protected MetadataParameterPolicy metadataParameterPolicy;
-    protected PolicyOperatorFactory policyOperatorFactory;
-
-    public MetadataParameterPolicyBuilder(MetadataParameter parameter) {
+    public SkipSubMetadataParameterPolicyBuilder(MetadataParameter parameter) {
       this(parameter, new DefaultPolicyOperatorFactory());
     }
 
-    public MetadataParameterPolicyBuilder(MetadataParameter parameter, PolicyOperatorFactory policyOperatorFactory) {
-      this.metadataParameterPolicy = new MetadataParameterPolicy();
+    public SkipSubMetadataParameterPolicyBuilder(MetadataParameter parameter, PolicyOperatorFactory policyOperatorFactory) {
+      super(parameter);
+      this.metadataParameterPolicy = new SkipSubMetadataParameterPolicy();
       this.metadataParameterPolicy.setParameter(parameter);
       this.policyOperatorFactory = policyOperatorFactory;
     }
 
-    public MetadataParameterPolicyBuilder add(PolicyOperator policyOperator) {
-      metadataParameterPolicy.getPolicyOperators().put(policyOperator.getName(), policyOperator);
-      return this;
-    }
-
+    @Override
     public MetadataParameterPolicyBuilder add(String operatorName, Object value)
       throws PolicyTranslationException, PolicyProcessingException {
       PolicyOperator policyOperator = policyOperatorFactory.getPolicyOperator(
         operatorName, metadataParameterPolicy.getParameter().getValueType(), value);
       metadataParameterPolicy.getPolicyOperators().put(operatorName, policyOperator);
+      // If the operator is skip_subordinates set to true, also set the skipSubordinates flag.
+      if (operatorName.equals(SkipSubordinatesPolicyOperator.OPERATOR_NAME)) {
+        skipSubordinates((Boolean)policyOperator.getPolicyOperatorValue());
+      }
       return this;
     }
 
     public MetadataParameterPolicyBuilder skipSubordinates(boolean skipSubordinates) {
-      throw new IllegalArgumentException("Skip subordinates is not supported");
+      ((SkipSubMetadataParameterPolicy)metadataParameterPolicy).skipSubordinates = skipSubordinates;
+      return this;
     }
 
-    public MetadataParameterPolicy build() {
-      return this.metadataParameterPolicy;
-    }
   }
 
 }

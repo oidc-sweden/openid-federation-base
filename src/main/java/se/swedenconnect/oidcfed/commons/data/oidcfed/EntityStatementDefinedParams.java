@@ -57,8 +57,8 @@ public class EntityStatementDefinedParams {
   @JsonProperty("trust_mark_owners")
   private Map<String, TrustMarkOwner> trustMarkOwners;
 
-  @JsonProperty("subject_data_publication")
-  private SubjectDataPublication subjectDataPublication;
+  @JsonProperty("subject_entity_configuration_location")
+  private String subjectEntityConfigurationLocation;
 
   public static EntityStatementDefinedParamsBuilder builder() {
     return new EntityStatementDefinedParamsBuilder();
@@ -130,10 +130,10 @@ public class EntityStatementDefinedParams {
       return this;
     }
 
-    public EntityStatementDefinedParamsBuilder subjectDataPublication(SubjectDataPublication subjectDataPublication, boolean critical) {
-      esDefinedParams.subjectDataPublication = subjectDataPublication;
+    public EntityStatementDefinedParamsBuilder subjectEntityConfigurationLocation(String subjectEntityConfigurationLocation, boolean critical) {
+      esDefinedParams.subjectEntityConfigurationLocation = subjectEntityConfigurationLocation;
       if (critical) {
-        this.addCriticalClaim(SubjectDataPublication.CLAIM_NAME);
+        this.addCriticalClaim(EntityStatement.SUBJECT_ENTITY_CONFIGURATION_LOCATION_CLAIM_NAME);
       }
       return this;
     }

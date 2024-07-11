@@ -23,7 +23,6 @@ import se.swedenconnect.oidcfed.commons.data.oidcfed.ConstraintsClaim;
 import se.swedenconnect.oidcfed.commons.data.oidcfed.EntityMetadataInfoClaim;
 import se.swedenconnect.oidcfed.commons.data.oidcfed.EntityStatement;
 import se.swedenconnect.oidcfed.commons.data.oidcfed.NamingConstraints;
-import se.swedenconnect.oidcfed.commons.data.oidcfed.SubjectDataPublication;
 import se.swedenconnect.oidcfed.commons.data.oidcfed.TrustMarkClaim;
 import se.swedenconnect.oidcfed.commons.process.chain.ChainValidationException;
 import se.swedenconnect.oidcfed.commons.process.chain.ChainValidationResult;
@@ -56,9 +55,7 @@ public class DefaultFederationChainValidator implements FederationChainValidator
   private final MetadataPolicySerializer metadataPolicySerializer;
   private final MetadataPolicyProcessor metadataPolicyProcessor;
 
-  @Setter private final List<String> supportedCriticalClaims = List.of(
-    SubjectDataPublication.CLAIM_NAME
-  );
+  @Setter private final List<String> supportedCriticalClaims = List.of(EntityStatement.SUBJECT_ENTITY_CONFIGURATION_LOCATION_CLAIM_NAME);
 
   /**
    * Constructor
@@ -228,17 +225,14 @@ public class DefaultFederationChainValidator implements FederationChainValidator
       log.debug("Leaf statement is an Entity Statement issued by a superior entity");
       // The leaf statement is an Entity Statement and not Entity Configuration.
       // Check that leaf entity statement subject_data_publication claim has declared "none" as the publication type
-      SubjectDataPublication subjectDataPublication = leafEntityStatement.getSubjectDataPublication();
+      String subjectDataPublication = leafEntityStatement.getSubjectEntityConfigurationLocation();
       if (subjectDataPublication == null) {
         throw new ChainValidationException(
-          "Chain ends with Entity Statement without declaring " + SubjectDataPublication.CLAIM_NAME);
-      }
-      if (!SubjectDataPublication.PUBLICATION_TYPE_NONE.equals(
-        subjectDataPublication.getEntityConfigurationPublicationType())) {
+          "Chain ends with Entity Statement without declaring subject_entity_configuration_location");
+      } else {
         throw new ChainValidationException(
-          "Chains ending with Entity Statement MUST declare entity_configuration_publication_type=none");
+          "Chain ends with Entity Statement despite having a subject_entity_configuration_location claim. Resolve this claim first and amend the chain");
       }
-      return leafEntityStatement.getMetadata();
     }
   }
 

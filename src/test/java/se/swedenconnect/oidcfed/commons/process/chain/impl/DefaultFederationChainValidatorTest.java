@@ -30,6 +30,8 @@ import se.swedenconnect.oidcfed.commons.process.chain.FederationChainValidator;
 import se.swedenconnect.oidcfed.commons.process.metadata.MetadataPolicySerializer;
 import se.swedenconnect.oidcfed.commons.process.metadata.PolicyOperatorFactory;
 import se.swedenconnect.oidcfed.commons.process.metadata.impl.DefaultPolicyOperatorFactory;
+import se.swedenconnect.oidcfed.commons.process.metadata.impl.SkipSubordinatesMetadataPolicySerializer;
+import se.swedenconnect.oidcfed.commons.process.metadata.impl.SkipSubordniatePolicyOperatorFactory;
 import se.swedenconnect.oidcfed.commons.process.metadata.impl.StandardMetadataPolicySerializer;
 import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.EssentialPolicyOperator;
 import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.SubsetOfPolicyOperator;
@@ -54,8 +56,8 @@ class DefaultFederationChainValidatorTest {
 
     JWKSet t1JwkSet = TestCredentials.getJwkSet(TestCredentials.ta1.getCertificate());
 
-    policyOperatorFactory = DefaultPolicyOperatorFactory.getInstance();
-    serializer = new StandardMetadataPolicySerializer(policyOperatorFactory,
+    policyOperatorFactory = SkipSubordniatePolicyOperatorFactory.getInstance();
+    serializer = new SkipSubordinatesMetadataPolicySerializer(policyOperatorFactory,
       Arrays.stream(PolicyParameterFormats.values())
         .collect(
           Collectors.toMap(PolicyParameterFormats::getParameterName, PolicyParameterFormats::toMetadataParameter))
@@ -98,7 +100,7 @@ class DefaultFederationChainValidatorTest {
         .oidcRelyingPartyMetadataObject(RelyingPartyMetadata.builder()
           .responseTypes(List.of("code"))
           .build().toJsonObject())
-        .build(), null);
+        .build(), ChainValidationException.class);
 
     performChainTest("Chain with Metadata restriction", List.of(
         TestEntityStatements.ta1_conf(),
@@ -209,7 +211,7 @@ class DefaultFederationChainValidatorTest {
         .scopesSupported(List.of("openid"))
         .claimsSupported(List.of("claim1", "claim2", "claim3"))
         .build().toJsonObject())
-      .build(), null);
+      .build(), ChainValidationException.class);
 
   }
 

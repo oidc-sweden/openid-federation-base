@@ -1,17 +1,7 @@
 package se.swedenconnect.oidcfed.commons.testdata;
 
-import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.JOSEException;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,25 +12,22 @@ import se.swedenconnect.oidcfed.commons.data.metadata.OpMetadata;
 import se.swedenconnect.oidcfed.commons.data.metadata.RelyingPartyMetadata;
 import se.swedenconnect.oidcfed.commons.data.metadata.policy.EntityTypeMetadataPolicy;
 import se.swedenconnect.oidcfed.commons.data.metadata.policy.MetadataParameterPolicy;
-import se.swedenconnect.oidcfed.commons.data.oidcfed.ConstraintsClaim;
-import se.swedenconnect.oidcfed.commons.data.oidcfed.EntityMetadataInfoClaim;
-import se.swedenconnect.oidcfed.commons.data.oidcfed.EntityStatement;
-import se.swedenconnect.oidcfed.commons.data.oidcfed.EntityStatementDefinedParams;
-import se.swedenconnect.oidcfed.commons.data.oidcfed.SubjectDataPublication;
-import se.swedenconnect.oidcfed.commons.data.oidcfed.TrustMark;
-import se.swedenconnect.oidcfed.commons.data.oidcfed.TrustMarkClaim;
-import se.swedenconnect.oidcfed.commons.data.oidcfed.TrustMarkOwner;
-import se.swedenconnect.oidcfed.commons.security.JWTSigningCredential;
-import se.swedenconnect.oidcfed.commons.process.metadata.MetadataPolicySerializer;
-import se.swedenconnect.oidcfed.commons.process.metadata.PolicyOperatorFactory;
+import se.swedenconnect.oidcfed.commons.data.metadata.policy.SkipSubMetadataParameterPolicy;
+import se.swedenconnect.oidcfed.commons.data.oidcfed.*;
 import se.swedenconnect.oidcfed.commons.process.metadata.PolicyProcessingException;
 import se.swedenconnect.oidcfed.commons.process.metadata.PolicyTranslationException;
-import se.swedenconnect.oidcfed.commons.process.metadata.impl.DefaultPolicyOperatorFactory;
-import se.swedenconnect.oidcfed.commons.process.metadata.impl.StandardMetadataPolicySerializer;
+import se.swedenconnect.oidcfed.commons.process.metadata.impl.SkipSubordinatesMetadataPolicySerializer;
+import se.swedenconnect.oidcfed.commons.process.metadata.impl.SkipSubordniatePolicyOperatorFactory;
 import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.SubsetOfPolicyOperator;
 import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.SupersetOfPolicyOperator;
+import se.swedenconnect.oidcfed.commons.security.JWTSigningCredential;
 import se.swedenconnect.oidcfed.commons.utils.JWKUtils;
 import se.swedenconnect.security.credential.PkiCredential;
+
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Description
@@ -50,8 +37,8 @@ import se.swedenconnect.security.credential.PkiCredential;
  */
 public class TestEntityStatements {
 
-  static PolicyOperatorFactory policyOperatorFactory;
-  static MetadataPolicySerializer policySerializer;
+  static SkipSubordniatePolicyOperatorFactory policyOperatorFactory;
+  static SkipSubordinatesMetadataPolicySerializer policySerializer;
 
   public static EsData.EsDataBuilder ta1_conf(){
     return EsData.builder()
@@ -72,7 +59,7 @@ public class TestEntityStatements {
       .policy(EntityMetadataInfoClaim.builder()
         .opMetadataObject(policySerializer.toJsonObject(EntityTypeMetadataPolicy.builder()
           .addMetadataParameterPolicy(
-            MetadataParameterPolicy.builder(PolicyParameterFormats.scopes_supported.toMetadataParameter())
+            SkipSubMetadataParameterPolicy.builder(PolicyParameterFormats.scopes_supported.toMetadataParameter())
               .add(SubsetOfPolicyOperator.OPERATOR_NAME, List.of("openid", "custom1"))
               .skipSubordinates(true)
               .build())
@@ -173,8 +160,8 @@ public class TestEntityStatements {
 
   static {
     try {
-      policyOperatorFactory = DefaultPolicyOperatorFactory.getInstance();
-      policySerializer = new StandardMetadataPolicySerializer(policyOperatorFactory,
+      policyOperatorFactory = SkipSubordniatePolicyOperatorFactory.getInstance();
+      policySerializer = new SkipSubordinatesMetadataPolicySerializer(policyOperatorFactory,
         Arrays.stream(PolicyParameterFormats.values())
           .collect(
             Collectors.toMap(PolicyParameterFormats::getParameterName, PolicyParameterFormats::toMetadataParameter))
@@ -232,9 +219,7 @@ public class TestEntityStatements {
       }
 
       if (esData.noSubjectDataStorage) {
-        esParamsBuilder.subjectDataPublication(SubjectDataPublication.builder()
-          .entityConfigurationPublicationType(SubjectDataPublication.PUBLICATION_TYPE_NONE)
-          .build(), true);
+        esParamsBuilder.subjectEntityConfigurationLocation("https://example.com/subject-entity-configuration", true);
       }
 
       if (esData.getAuthorityHints() != null) {

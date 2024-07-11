@@ -27,6 +27,7 @@ import se.swedenconnect.oidcfed.commons.process.metadata.PolicyOperatorFactory;
 import se.swedenconnect.oidcfed.commons.process.metadata.PolicyProcessingException;
 import se.swedenconnect.oidcfed.commons.process.metadata.PolicyTranslationException;
 import se.swedenconnect.oidcfed.commons.process.metadata.impl.DefaultPolicyOperatorFactory;
+import se.swedenconnect.oidcfed.commons.process.metadata.impl.SkipSubordniatePolicyOperatorFactory;
 import se.swedenconnect.oidcfed.commons.process.metadata.impl.StandardMetadataPolicySerializer;
 import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.AddPolicyOperator;
 import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.DefaultPolicyOperator;
@@ -50,11 +51,19 @@ class PolicyModifiersTest {
 
   static PolicyOperatorFactory policyOperatorFactory;
   static MetadataPolicySerializer serializer;
+  static PolicyOperatorFactory skipSubordinatesPolicyOperatorFactory;
+  static MetadataPolicySerializer skipSubordinatesSerializer;
 
   @BeforeAll
   static void init() {
     policyOperatorFactory = DefaultPolicyOperatorFactory.getInstance();
     serializer = new StandardMetadataPolicySerializer(policyOperatorFactory,
+      Arrays.stream(PolicyParameterFormats.values())
+        .collect(
+          Collectors.toMap(PolicyParameterFormats::getParameterName, PolicyParameterFormats::toMetadataParameter))
+    );
+    skipSubordinatesPolicyOperatorFactory = SkipSubordniatePolicyOperatorFactory.getInstance();
+    skipSubordinatesSerializer = new StandardMetadataPolicySerializer(skipSubordinatesPolicyOperatorFactory,
       Arrays.stream(PolicyParameterFormats.values())
         .collect(
           Collectors.toMap(PolicyParameterFormats::getParameterName, PolicyParameterFormats::toMetadataParameter))
@@ -201,7 +210,7 @@ class PolicyModifiersTest {
       .expriationTime(Date.from(Instant.now().plusSeconds(600)))
       .definedParams(EntityStatementDefinedParams.builder()
         .metadataPolicy(EntityMetadataInfoClaim.builder()
-          .opMetadataObject(serializer.toJsonObject(EntityTypeMetadataPolicy.builder()
+          .opMetadataObject(skipSubordinatesSerializer.toJsonObject(EntityTypeMetadataPolicy.builder()
             .addMetadataParameterPolicy(
               MetadataParameterPolicy.builder(PolicyParameterFormats.issuer.toMetadataParameter())
                 .add(ValuePolicyOperator.OPERATOR_NAME, "Value")
@@ -211,7 +220,7 @@ class PolicyModifiersTest {
                 PolicyParameterFormats.request_uri_parameter_supported.toMetadataParameter())
               .add(DefaultPolicyOperator.OPERATOR_NAME, true).build())
             .addMetadataParameterPolicy(
-              MetadataParameterPolicy.builder(PolicyParameterFormats.scopes_supported.toMetadataParameter())
+              MetadataParameterPolicy.builder(PolicyParameterFormats.scopes_supported.toMetadataParameter(), SkipSubordniatePolicyOperatorFactory.getInstance())
                 .add(SupersetOfPolicyOperator.OPERATOR_NAME, List.of("openid"))
                 .add(SkipSubordinatesPolicyOperator.OPERATOR_NAME, true)
                 .build())
@@ -234,11 +243,11 @@ class PolicyModifiersTest {
     log.info("Entity statement payload:\n{}", entityStatementPayloadJson);
 
     EntityMetadataInfoClaim metadataPolicyClaim = entityStatement.getMetadataPolicy();
-    EntityTypeMetadataPolicy entityTypeMetadataPolicy = serializer.fromJsonObject(
+    EntityTypeMetadataPolicy entityTypeMetadataPolicy = skipSubordinatesSerializer.fromJsonObject(
       metadataPolicyClaim.getOpMetadataObject(), new ArrayList<>());
 
     String entityPolicyJsonString = OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
-      .writeValueAsString(serializer.toJsonObject(entityTypeMetadataPolicy));
+      .writeValueAsString(skipSubordinatesSerializer.toJsonObject(entityTypeMetadataPolicy));
     log.info("OP Entity metadata policy:\n{}", entityPolicyJsonString);
 
     int sdf = 0;
@@ -257,7 +266,7 @@ class PolicyModifiersTest {
 
     if (exception == null) {
       MetadataParameterPolicy.MetadataParameterPolicyBuilder mdpBuilder = MetadataParameterPolicy.builder(
-        metadataParameter);
+        metadataParameter, SkipSubordniatePolicyOperatorFactory.getInstance());
       for (PolicyData policyData : policyDataList) {
         mdpBuilder.add(policyData.getPolicy(), policyData.getValue());
       }
@@ -267,7 +276,7 @@ class PolicyModifiersTest {
         .build();
 
       String jsonString = OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
-        .writeValueAsString(serializer.toJsonObject(entityTypeMetadataPolicy));
+        .writeValueAsString(skipSubordinatesSerializer.toJsonObject(entityTypeMetadataPolicy));
       log.info("Policy modifiers JSON:\n{}", jsonString);
     }
     else {

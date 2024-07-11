@@ -31,6 +31,7 @@ public class EntityStatement {
 
   /** The JWT header typ value of Entity Statements */
   public static final JOSEObjectType TYPE = new JOSEObjectType("entity-statement+jwt");
+  public static final String SUBJECT_ENTITY_CONFIGURATION_LOCATION_CLAIM_NAME = "subject_entity_configuration_location";
 
   /**
    * Private constructor for the builder
@@ -114,8 +115,8 @@ public class EntityStatement {
     return this.definedParams.getTrustMarkOwners();
   }
 
-  public SubjectDataPublication getSubjectDataPublication() {
-    return this.definedParams.getSubjectDataPublication();
+  public String getSubjectEntityConfigurationLocation() {
+    return this.definedParams.getSubjectEntityConfigurationLocation();
   }
 
   public static EntityStatementBuilder builder() {

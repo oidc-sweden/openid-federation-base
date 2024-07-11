@@ -20,6 +20,7 @@ import se.swedenconnect.oidcfed.commons.configuration.PolicyParameterFormats;
 import se.swedenconnect.oidcfed.commons.process.metadata.MetadataPolicySerializer;
 import se.swedenconnect.oidcfed.commons.process.metadata.PolicyOperatorFactory;
 import se.swedenconnect.oidcfed.commons.process.metadata.impl.DefaultPolicyOperatorFactory;
+import se.swedenconnect.oidcfed.commons.process.metadata.impl.SkipSubordniatePolicyOperatorFactory;
 import se.swedenconnect.oidcfed.commons.process.metadata.impl.StandardMetadataPolicySerializer;
 import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.OneOfPolicyOperator;
 import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.PolicyOperator;
@@ -37,11 +38,19 @@ public class PolicyMergeTest {
 
   static PolicyOperatorFactory policyOperatorFactory;
   static MetadataPolicySerializer serializer;
+  static PolicyOperatorFactory skipSubordinatesPolicyOperatorFactory;
+  static MetadataPolicySerializer skipSubordinatesSerializer;
 
   @BeforeAll
   static void init() {
     policyOperatorFactory = DefaultPolicyOperatorFactory.getInstance();
     serializer = new StandardMetadataPolicySerializer(policyOperatorFactory,
+      Arrays.stream(PolicyParameterFormats.values())
+        .collect(
+          Collectors.toMap(PolicyParameterFormats::getParameterName, PolicyParameterFormats::toMetadataParameter))
+    );
+    skipSubordinatesPolicyOperatorFactory = SkipSubordniatePolicyOperatorFactory.getInstance();
+    skipSubordinatesSerializer = new StandardMetadataPolicySerializer(skipSubordinatesPolicyOperatorFactory,
       Arrays.stream(PolicyParameterFormats.values())
         .collect(
           Collectors.toMap(PolicyParameterFormats::getParameterName, PolicyParameterFormats::toMetadataParameter))
@@ -260,18 +269,18 @@ public class PolicyMergeTest {
     log.info(message);
     EntityTypeMetadataPolicy superiorPolicy = getEtMetadataPolicy(superior);
     log.info("Superior policy: \n{}", OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
-      serializer.toJsonObject(superiorPolicy)
+      skipSubordinatesSerializer.toJsonObject(superiorPolicy)
     ));
     EntityTypeMetadataPolicy subordinatePolicy = getEtMetadataPolicy(subordinate);
     log.info("Subordinate policy: \n{}", subordinatePolicy == null
       ? null
       : OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
-      serializer.toJsonObject(subordinatePolicy))
+      skipSubordinatesSerializer.toJsonObject(subordinatePolicy))
     );
 
     EntityTypeMetadataPolicy mergedPolicy = superiorPolicy.mergeWithSubordinate(subordinatePolicy);
     log.info("Merged policy: \n{}", OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
-      serializer.toJsonObject(mergedPolicy)
+      skipSubordinatesSerializer.toJsonObject(mergedPolicy)
     ));
 
     EntityTypeMetadataPolicy expectedPolicy = getEtMetadataPolicy(expected);
@@ -282,8 +291,10 @@ public class PolicyMergeTest {
     for (String parameterName : expectedPolicyMap.keySet()) {
       MetadataParameterPolicy expectedParameterPolicy = expectedPolicyMap.get(parameterName);
       MetadataParameterPolicy mergedParameterPolicy = mergedPolicyMap.get(parameterName);
-      assertEquals(expectedParameterPolicy.isSkipSubordinates(), mergedParameterPolicy.isSkipSubordinates(),
-        "Skip subordinates mismatch");
+      if (expectedParameterPolicy instanceof SkipSubMetadataParameterPolicy) {
+        assertEquals(((SkipSubMetadataParameterPolicy) expectedParameterPolicy).isSkipSubordinates(), ((SkipSubMetadataParameterPolicy) mergedParameterPolicy).isSkipSubordinates(),
+          "Skip subordinates mismatch");
+      }
       Map<String, PolicyOperator> expectedOperators = expectedParameterPolicy.getPolicyOperators();
       Map<String, PolicyOperator> mergedOperators = mergedParameterPolicy.getPolicyOperators();
       assertEquals(expectedOperators.keySet().size(), mergedOperators.keySet().size(),
@@ -309,8 +320,8 @@ public class PolicyMergeTest {
 
     EntityTypeMetadataPolicy.EntityTypeMetadataPolicyBuilder entityTypeMetadataPolicyBuilder = EntityTypeMetadataPolicy.builder();
     for (MdParamData mdParamData : etPolicyData.getMetadataParameters()) {
-      MetadataParameterPolicy.MetadataParameterPolicyBuilder parameterPolicyBuilder = MetadataParameterPolicy.builder(
-        mdParamData.getMetadataParameter());
+      SkipSubMetadataParameterPolicy.SkipSubMetadataParameterPolicyBuilder parameterPolicyBuilder = SkipSubMetadataParameterPolicy.builder(
+        mdParamData.getMetadataParameter(), new SkipSubordniatePolicyOperatorFactory());
       for (MdOperatorData operatorData : mdParamData.getOperators()) {
         parameterPolicyBuilder.add(operatorData.getName(), operatorData.getValue());
       }
