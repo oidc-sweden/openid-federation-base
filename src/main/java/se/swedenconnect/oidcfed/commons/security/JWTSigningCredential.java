@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSASigner;
 
 import lombok.AllArgsConstructor;
@@ -23,6 +24,7 @@ public class JWTSigningCredential {
 
   private List<JWSAlgorithm> supportedAlgorithms;
   private JWSSigner signer;
+  private JWSVerifier verifier;
   private String kid;
 
   /**
