@@ -30,8 +30,6 @@ import se.swedenconnect.oidcfed.commons.process.chain.FederationChainValidator;
 import se.swedenconnect.oidcfed.commons.process.metadata.MetadataPolicySerializer;
 import se.swedenconnect.oidcfed.commons.process.metadata.PolicyOperatorFactory;
 import se.swedenconnect.oidcfed.commons.process.metadata.impl.DefaultPolicyOperatorFactory;
-import se.swedenconnect.oidcfed.commons.process.metadata.impl.SkipSubordinatesMetadataPolicySerializer;
-import se.swedenconnect.oidcfed.commons.process.metadata.impl.SkipSubordniatePolicyOperatorFactory;
 import se.swedenconnect.oidcfed.commons.process.metadata.impl.StandardMetadataPolicySerializer;
 import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.EssentialPolicyOperator;
 import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.SubsetOfPolicyOperator;
@@ -56,8 +54,8 @@ class DefaultFederationChainValidatorTest {
 
     JWKSet t1JwkSet = TestCredentials.getJwkSet(TestCredentials.ta1.getCertificate());
 
-    policyOperatorFactory = SkipSubordniatePolicyOperatorFactory.getInstance();
-    serializer = new SkipSubordinatesMetadataPolicySerializer(policyOperatorFactory,
+    policyOperatorFactory = DefaultPolicyOperatorFactory.getInstance();
+    serializer = new StandardMetadataPolicySerializer(policyOperatorFactory,
       Arrays.stream(PolicyParameterFormats.values())
         .collect(
           Collectors.toMap(PolicyParameterFormats::getParameterName, PolicyParameterFormats::toMetadataParameter))
@@ -102,7 +100,7 @@ class DefaultFederationChainValidatorTest {
           .build().toJsonObject())
         .build(), ChainValidationException.class);
 
-    performChainTest("Chain with Metadata restriction", List.of(
+    performChainTest("Chain with invalid policy merge", List.of(
         TestEntityStatements.ta1_conf(),
         TestEntityStatements.ta1_ie1_statement(),
         TestEntityStatements.ie1_ie2_statement()
@@ -131,7 +129,7 @@ class DefaultFederationChainValidatorTest {
           .scopesSupported(List.of("openid"))
           .claimsSupported(List.of("claim1", "claim2"))
           .build().toJsonObject())
-        .build(), null);
+        .build(), ChainValidationException.class);
 
     performChainTest("Chain with Metadata Merge conflict", List.of(
         TestEntityStatements.ta1_conf(),
@@ -218,6 +216,14 @@ class DefaultFederationChainValidatorTest {
   void performChainTest(String message, List<TestEntityStatements.EsData.EsDataBuilder> builderChain,
     EntityMetadataInfoClaim expected, Class<? extends Exception> exceptionClass) throws Exception {
     log.info("Entity Statement chain validation test: " + message);
+    List<EntityStatement> chain = builderChain.stream()
+      .map(esDataBuilder -> TestEntityStatements.getEntityStatement(esDataBuilder.build()))
+      .toList();
+    log.info("Validated chain");
+    for (EntityStatement entityStatement : chain) {
+      logEntityStatementInfo(entityStatement);
+    }
+
     if (exceptionClass != null) {
       Exception exception = assertThrows(exceptionClass, () -> {
         federationChainValidator.validate(builderChain.stream()
@@ -230,13 +236,6 @@ class DefaultFederationChainValidatorTest {
       return;
     }
 
-    List<EntityStatement> chain = builderChain.stream()
-      .map(esDataBuilder -> TestEntityStatements.getEntityStatement(esDataBuilder.build()))
-      .toList();
-    log.info("Validated chain");
-    for (EntityStatement entityStatement : chain) {
-      logEntityStatementInfo(entityStatement);
-    }
 
     ChainValidationResult validationResult = federationChainValidator.validate(chain);
     log.info("Target entity declared metadata:\n{}",

@@ -18,6 +18,7 @@ import se.swedenconnect.oidcfed.commons.process.metadata.PolicyProcessingExcepti
 import se.swedenconnect.oidcfed.commons.process.metadata.PolicyTranslationException;
 import se.swedenconnect.oidcfed.commons.process.metadata.impl.SkipSubordinatesMetadataPolicySerializer;
 import se.swedenconnect.oidcfed.commons.process.metadata.impl.SkipSubordniatePolicyOperatorFactory;
+import se.swedenconnect.oidcfed.commons.process.metadata.impl.StandardMetadataPolicySerializer;
 import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.SubsetOfPolicyOperator;
 import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.SupersetOfPolicyOperator;
 import se.swedenconnect.oidcfed.commons.security.JWTSigningCredential;
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
 public class TestEntityStatements {
 
   static SkipSubordniatePolicyOperatorFactory policyOperatorFactory;
-  static SkipSubordinatesMetadataPolicySerializer policySerializer;
+  static StandardMetadataPolicySerializer policySerializer;
 
   public static EsData.EsDataBuilder ta1_conf(){
     return EsData.builder()
@@ -161,7 +162,7 @@ public class TestEntityStatements {
   static {
     try {
       policyOperatorFactory = SkipSubordniatePolicyOperatorFactory.getInstance();
-      policySerializer = new SkipSubordinatesMetadataPolicySerializer(policyOperatorFactory,
+      policySerializer = new StandardMetadataPolicySerializer(policyOperatorFactory,
         Arrays.stream(PolicyParameterFormats.values())
           .collect(
             Collectors.toMap(PolicyParameterFormats::getParameterName, PolicyParameterFormats::toMetadataParameter))
