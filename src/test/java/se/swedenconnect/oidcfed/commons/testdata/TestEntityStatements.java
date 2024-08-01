@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import se.swedenconnect.oidcfed.commons.configuration.PolicyParameterFormats;
-import se.swedenconnect.oidcfed.commons.data.metadata.FederationEndpointMetadata;
+import se.swedenconnect.oidcfed.commons.data.metadata.FederationEntityMetadata;
 import se.swedenconnect.oidcfed.commons.data.metadata.OpMetadata;
 import se.swedenconnect.oidcfed.commons.data.metadata.RelyingPartyMetadata;
 import se.swedenconnect.oidcfed.commons.data.metadata.policy.EntityTypeMetadataPolicy;
@@ -16,7 +16,6 @@ import se.swedenconnect.oidcfed.commons.data.metadata.policy.SkipSubMetadataPara
 import se.swedenconnect.oidcfed.commons.data.oidcfed.*;
 import se.swedenconnect.oidcfed.commons.process.metadata.PolicyProcessingException;
 import se.swedenconnect.oidcfed.commons.process.metadata.PolicyTranslationException;
-import se.swedenconnect.oidcfed.commons.process.metadata.impl.SkipSubordinatesMetadataPolicySerializer;
 import se.swedenconnect.oidcfed.commons.process.metadata.impl.SkipSubordniatePolicyOperatorFactory;
 import se.swedenconnect.oidcfed.commons.process.metadata.impl.StandardMetadataPolicySerializer;
 import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.SubsetOfPolicyOperator;
@@ -93,7 +92,7 @@ public class TestEntityStatements {
       .sigCredential(TestCredentials.ie2Sig)
       .authorityHints(List.of("ie1", "ta1"))
       .metadata(EntityMetadataInfoClaim.builder()
-        .federationEntityMetadataObject(FederationEndpointMetadata.builder()
+        .federationEntityMetadataObject(FederationEntityMetadata.builder()
           .federationFetchEndpoint("https://example.com/fetchEndpoint")
           .federationListEndpoint("https://example.com/listEndpoint")
           .federationTrustMarkEndpoint("https://example.com/trustMarkEndpoint")

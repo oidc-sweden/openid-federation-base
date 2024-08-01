@@ -14,13 +14,13 @@ import se.swedenconnect.oidcfed.commons.data.OidcLangJsonSerializer;
 /**
  * Federation endpoint metadata
  */
-public class FederationEndpointMetadata extends AbstractOidcFedMetadata {
+public class FederationEntityMetadata extends AbstractOidcFedMetadata {
 
   @JsonIgnore
-  @Getter public static final OidcLangJsonSerializer<FederationEndpointMetadata> jsonSerializer =
-    new OidcLangJsonSerializer<>(FederationEndpointMetadata.class);
+  @Getter public static final OidcLangJsonSerializer<FederationEntityMetadata> jsonSerializer =
+    new OidcLangJsonSerializer<>(FederationEntityMetadata.class);
 
-  public FederationEndpointMetadata() {
+  public FederationEntityMetadata() {
     addLanguageParametersTags(List.of());
   }
 
@@ -64,63 +64,63 @@ public class FederationEndpointMetadata extends AbstractOidcFedMetadata {
    * Creates builder class for Federation endpoint metadata
    * @return builder
    */
-  public static FederationEndpointMetadataBuilder builder() {
-    return new FederationEndpointMetadataBuilder();
+  public static FederationEntityMetadataBuilder builder() {
+    return new FederationEntityMetadataBuilder();
   }
 
   /**
    * Builder class for federation endpoint metadata
    */
-  public static class FederationEndpointMetadataBuilder
-    extends AbstractOidcFedMetadataBuilder<FederationEndpointMetadata, FederationEndpointMetadataBuilder> {
+  public static class FederationEntityMetadataBuilder
+    extends AbstractOidcFedMetadataBuilder<FederationEntityMetadata, FederationEntityMetadataBuilder> {
 
     /**
      * Private constructor
      */
-    private FederationEndpointMetadataBuilder() {
-      super(new FederationEndpointMetadata());
+    private FederationEntityMetadataBuilder() {
+      super(new FederationEntityMetadata());
     }
 
-    public FederationEndpointMetadataBuilder federationFetchEndpoint(String federationFetchEndpoint){
+    public FederationEntityMetadataBuilder federationFetchEndpoint(String federationFetchEndpoint){
       this.metadata.federationFetchEndpoint = federationFetchEndpoint;
       return this;
     }
-    public FederationEndpointMetadataBuilder federationListEndpoint(String federationListEndpoint){
+    public FederationEntityMetadataBuilder federationListEndpoint(String federationListEndpoint){
       this.metadata.federationListEndpoint = federationListEndpoint;
       return this;
     }
-    public FederationEndpointMetadataBuilder federationResolveEndpoint(String federationResolveEndpoint){
+    public FederationEntityMetadataBuilder federationResolveEndpoint(String federationResolveEndpoint){
       this.metadata.federationResolveEndpoint = federationResolveEndpoint;
       return this;
     }
-    public FederationEndpointMetadataBuilder federationTrustMarkStatusEndpoint(String federationTrustMarkStatusEndpoint){
+    public FederationEntityMetadataBuilder federationTrustMarkStatusEndpoint(String federationTrustMarkStatusEndpoint){
       this.metadata.federationTrustMarkStatusEndpoint = federationTrustMarkStatusEndpoint;
       return this;
     }
-    public FederationEndpointMetadataBuilder federationTrustMarkListEndpoint(String federationTrustMarkListEndpoint){
+    public FederationEntityMetadataBuilder federationTrustMarkListEndpoint(String federationTrustMarkListEndpoint){
       this.metadata.federationTrustMarkListEndpoint = federationTrustMarkListEndpoint;
       return this;
     }
-    public FederationEndpointMetadataBuilder federationTrustMarkEndpoint(String federationTrustMarkEndpoint){
+    public FederationEntityMetadataBuilder federationTrustMarkEndpoint(String federationTrustMarkEndpoint){
       this.metadata.federationTrustMarkEndpoint = federationTrustMarkEndpoint;
       return this;
     }
-    public FederationEndpointMetadataBuilder federationHistoricalKeysEndpoint(String federationHistoricalKeysEndpoint){
+    public FederationEntityMetadataBuilder federationHistoricalKeysEndpoint(String federationHistoricalKeysEndpoint){
       this.metadata.federationHistoricalKeysEndpoint = federationHistoricalKeysEndpoint;
       return this;
     }
-    public FederationEndpointMetadataBuilder federationDiscoveryEndpoint(String federationDiscoveryEndpoint){
+    public FederationEntityMetadataBuilder federationDiscoveryEndpoint(String federationDiscoveryEndpoint){
       this.metadata.federationDiscoveryEndpoint = federationDiscoveryEndpoint;
       return this;
     }
 
     /** {@inheritDoc} */
-    @Override FederationEndpointMetadataBuilder getReturnedBuilderInstance() {
+    @Override FederationEntityMetadataBuilder getReturnedBuilderInstance() {
       return this;
     }
 
     /** {@inheritDoc} */
-    @Override public FederationEndpointMetadata build() {
+    @Override public FederationEntityMetadata build() {
       return metadata;
     }
   }

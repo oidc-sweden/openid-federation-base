@@ -146,7 +146,7 @@ class MetadataTests {
 
   @Test
   void testFederationEndpointMetadata() throws Exception {
-    FederationEndpointMetadata federationEndpointMetadata = FederationEndpointMetadata.builder()
+    FederationEntityMetadata federationEntityMetadata = FederationEntityMetadata.builder()
       .build();
 
     // TODO write FE metadata test

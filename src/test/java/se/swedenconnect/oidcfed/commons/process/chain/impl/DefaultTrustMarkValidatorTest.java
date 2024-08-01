@@ -16,8 +16,6 @@ import com.nimbusds.jose.jwk.JWKSet;
 
 import lombok.extern.slf4j.Slf4j;
 import se.swedenconnect.oidcfed.commons.configuration.PolicyParameterFormats;
-import se.swedenconnect.oidcfed.commons.data.metadata.FederationEndpointMetadata;
-import se.swedenconnect.oidcfed.commons.data.oidcfed.EntityMetadataInfoClaim;
 import se.swedenconnect.oidcfed.commons.data.oidcfed.EntityStatement;
 import se.swedenconnect.oidcfed.commons.data.oidcfed.TrustMark;
 import se.swedenconnect.oidcfed.commons.data.oidcfed.TrustMarkDelegation;
