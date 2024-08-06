@@ -70,11 +70,13 @@ public class DefaultFederationChainValidator implements FederationChainValidator
   }
 
   /** {@inheritDoc} */
-  @Override public ChainValidationResult validate(@NonNull final List<EntityStatement> chain)
+  @Override public ChainValidationResult validate(@NonNull final List<EntityStatement> unorderedChain)
     throws ChainValidationException {
 
+    List<EntityStatement> chain = orderChain(unorderedChain);
+
     // Check that chain has at least length = 2
-    if (chain.size() < 2) {
+    if (chain.size() < 3) {
       throw new ChainValidationException("Chain does not include at least two statements");
     }
     log.debug("Validating chain of length {}", chain.size());
@@ -135,6 +137,49 @@ public class DefaultFederationChainValidator implements FederationChainValidator
       .policyProcessedMetadata(policyProcessedMetadata)
       .subjectTrustMarks(collectSubjectTrustMarks(chain))
       .build();
+  }
+
+  private List<EntityStatement> orderChain(List<EntityStatement> unorderedChain) throws ChainValidationException {
+    // Find the Entity Configurations
+    List<EntityStatement> entityConfigurations = unorderedChain.stream()
+      .filter(entityStatement -> entityStatement.getSubject().equals(entityStatement.getIssuer()))
+      .toList();
+
+    // Find the Entity statements
+    List<EntityStatement> entityStatements = unorderedChain.stream()
+      .filter(entityStatement -> !entityStatement.getSubject().equals(entityStatement.getIssuer()))
+      .toList();
+
+    // Get List of issuers
+    List<String> issuers = entityStatements.stream().map(EntityStatement::getIssuer).toList();
+    // Get the TA = the Entity Configuration listed as Issuer of en Entity Statement
+    EntityStatement taEntityConfiguration = entityConfigurations.stream()
+      .filter(entityStatement -> issuers.contains(entityStatement.getSubject()))
+      .findFirst()
+      .orElseThrow(() -> new ChainValidationException("No Trust anchor Entity Configuration found matching the path"));
+    EntityStatement targetEntityConfiguration = entityConfigurations.stream()
+      .filter(entityStatement -> !entityStatement.getSubject().equals(taEntityConfiguration.getSubject()))
+      .findFirst()
+      .orElseThrow(() -> new ChainValidationException("No target Entity Configuration found"));
+
+    // We have the TA and the target. Let's build the path of entity statements
+    List<EntityStatement> path = new ArrayList<>(List.of(taEntityConfiguration));
+    String currentIssuer = taEntityConfiguration.getSubject();
+    for (int i = 0; i<entityStatements.size() ; i++) {
+      final String finalCurrentIssuer = currentIssuer;
+      EntityStatement nextEntityStatement = entityStatements.stream()
+        .filter((EntityStatement entityStatement) -> entityStatement.getIssuer().equals(finalCurrentIssuer))
+        .findFirst()
+        .orElseThrow(() -> new ChainValidationException("No next Entity Statement found for issuer: " + finalCurrentIssuer));
+      path.add(nextEntityStatement);
+      currentIssuer = nextEntityStatement.getSubject();
+    }
+    EntityStatement lastEntityStatement = path.get(path.size() - 1);
+    if (targetEntityConfiguration.getSubject().equals(lastEntityStatement.getSubject())) {
+      path.add(targetEntityConfiguration);
+      return path;
+    }
+    throw new ChainValidationException("Target Entity Configuration does not match the last Entity Statement of the path");
   }
 
   private List<TrustMarkClaim> collectSubjectTrustMarks(List<EntityStatement> chain) {
