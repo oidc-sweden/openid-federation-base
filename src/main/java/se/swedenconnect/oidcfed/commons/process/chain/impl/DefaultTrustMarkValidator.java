@@ -52,7 +52,7 @@ public class DefaultTrustMarkValidator implements TrustMarkValidator {
 
       try {
         String trustMarkIssuer = trustMark.getIssuer();
-        List<EntityStatement> trustMarkChain = pathBuilder.buildPath(trustMarkIssuer, trustAnchor);
+        List<EntityStatement> trustMarkChain = pathBuilder.buildPath(trustMarkIssuer, trustAnchor, true);
         if (trustMarkChain.isEmpty()) {
           log.debug("No validation path to trust mark issuer");
           continue;

@@ -3,10 +3,7 @@ package se.swedenconnect.oidcfed.commons.process.chain.impl;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -21,8 +18,6 @@ import se.swedenconnect.oidcfed.commons.data.oidcfed.TrustMark;
 import se.swedenconnect.oidcfed.commons.data.oidcfed.TrustMarkDelegation;
 import se.swedenconnect.oidcfed.commons.data.oidcfed.TrustMarkOwner;
 import se.swedenconnect.oidcfed.commons.process.chain.FederationChainValidator;
-import se.swedenconnect.oidcfed.commons.process.chain.FederationPathBuilder;
-import se.swedenconnect.oidcfed.commons.process.chain.PathBuildingException;
 import se.swedenconnect.oidcfed.commons.process.chain.TrustMarkStatusException;
 import se.swedenconnect.oidcfed.commons.process.chain.TrustMarkStatusResolver;
 import se.swedenconnect.oidcfed.commons.process.chain.TrustMarkValidator;
@@ -275,19 +270,16 @@ class DefaultTrustMarkValidatorTest {
 
   TrustMarkValidator getTrustMarkValidator(List<EntityStatement> chain, boolean status) {
 
-    return    new DefaultTrustMarkValidator(
-      new FederationPathBuilder() {
-      @Override public List<EntityStatement> buildPath(String entityIdentifier, String trustAnchor)
-        throws PathBuildingException {
-        return chain;
-      }
-    },
-    new TrustMarkStatusResolver() {
-      @Override public boolean isStatusActive(String trustMarkId, String subject, String issuer)
-        throws TrustMarkStatusException {
-        return status;
-      }
-    }, federationChainValidator
+    return new DefaultTrustMarkValidator(
+      (entityIdentifier, trustAnchor, trustAnchorFirst) -> {
+        if (trustAnchorFirst) {
+          return chain;
+        }
+        List<EntityStatement> leafFirstChain = new ArrayList<>(chain);
+        Collections.reverse(leafFirstChain);
+        return leafFirstChain;
+      },
+      (trustMarkId, subject, issuer) -> status, federationChainValidator
     );
   }
 
