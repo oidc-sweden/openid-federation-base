@@ -9,6 +9,7 @@ import org.springframework.lang.NonNull;
 
 import lombok.RequiredArgsConstructor;
 import se.swedenconnect.oidcfed.commons.configuration.MetadataParameter;
+import se.swedenconnect.oidcfed.commons.configuration.ValueType;
 import se.swedenconnect.oidcfed.commons.data.metadata.policy.MetadataParameterPolicy;
 import se.swedenconnect.oidcfed.commons.data.metadata.policy.EntityTypeMetadataPolicy;
 import se.swedenconnect.oidcfed.commons.process.metadata.MetadataPolicySerializer;
@@ -29,6 +30,7 @@ import se.swedenconnect.oidcfed.commons.process.metadata.policyoperators.PolicyO
  * If this is the case, then these Entity types must use different instances if this class adapted to their
  * metadata parameters and value types.
  * </p>
+ * 
  */
 @RequiredArgsConstructor
 public class StandardMetadataPolicySerializer implements MetadataPolicySerializer {
@@ -63,6 +65,9 @@ public class StandardMetadataPolicySerializer implements MetadataPolicySerialize
         throw new PolicyProcessingException("Unsupported metadata parameter: " + metadataParameterName);
       }
       MetadataParameter metadataParameter = supportedMetadataParametersMap.get(metadataParameterName);
+      if (metadataParameter.getValueType().equals(ValueType.OBJECT)) {
+        throw new PolicyProcessingException("Metadata policy is not allowed for metadata parameters that contains a JSON object value");
+      }
       MetadataParameterPolicy.MetadataParameterPolicyBuilder parameterPolicyBuilder = MetadataParameterPolicy.builder(
         metadataParameter);
       Object parameterObj = jsonObject.get(metadataParameterName);

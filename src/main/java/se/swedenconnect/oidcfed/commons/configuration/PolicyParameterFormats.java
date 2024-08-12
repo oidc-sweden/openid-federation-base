@@ -43,6 +43,11 @@ public enum PolicyParameterFormats {
   introspection_endpoint_auth_signing_alg_values_supported(null, ValueType.STRING_ARRAY),
   code_challenge_methods_supported(null, ValueType.STRING_ARRAY),
 
+  // OpenID Federation metadata
+  client_registration_types_supported(null, ValueType.STRING_ARRAY),
+  federation_registration_endpoint(null, ValueType.STRING),
+  request_authentication_methods_supported(null, ValueType.OBJECT),
+  request_authentication_signing_alg_values_supported(null, ValueType.STRING_ARRAY),
   // Additional Op metadata
   userinfo_endpoint(null, ValueType.STRING),
   acr_values_supported(null, ValueType.STRING_ARRAY),
