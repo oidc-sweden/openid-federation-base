@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import se.swedenconnect.oidcfed.commons.configuration.MetadataParameter;
+import se.swedenconnect.oidcfed.commons.configuration.ValueType;
 import se.swedenconnect.oidcfed.commons.process.metadata.PolicyMergeException;
 import se.swedenconnect.oidcfed.commons.process.metadata.PolicyOperatorFactory;
 import se.swedenconnect.oidcfed.commons.process.metadata.PolicyProcessingException;
@@ -65,7 +66,10 @@ public class MetadataParameterPolicy {
     return builder.build();
   }
 
-  public static MetadataParameterPolicyBuilder builder(MetadataParameter parameter) {
+  public static MetadataParameterPolicyBuilder builder(MetadataParameter parameter) throws PolicyTranslationException {
+    if (parameter.getValueType().equals(ValueType.OBJECT)) {
+      throw new PolicyTranslationException("Metadata policy is not allowed for metadata parameters holding JSON objects");
+    }
     return new MetadataParameterPolicyBuilder(parameter);
   }
 

@@ -13,4 +13,6 @@ public class ValueType {
 
   public static final String BOOLEAN_ARRAY = "boolean_array";
 
+  public static final String OBJECT = "object";
+
 }
