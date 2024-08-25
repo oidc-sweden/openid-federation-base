@@ -1,6 +1,7 @@
 package se.swedenconnect.oidcfed.commons.data;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -12,6 +13,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.minidev.json.annotate.JsonIgnore;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Data class holding the values associated with zero or more language tags
@@ -29,6 +32,20 @@ public class LanguageObject<T extends Object> {
   /** Language tagged values with the language identifier as key */
   @JsonProperty("lang_values")
   private Map<String, T> valueMap;
+
+  @JsonIgnore
+  public T getLanguageValue(String preferredLanguage) {
+    if (defaultValue == null && CollectionUtils.isEmpty(valueMap)) {
+      return null;
+    }
+    T firstAvailable = defaultValue == null
+      ? valueMap.values().stream().findFirst().get()
+      : defaultValue;
+
+    return !CollectionUtils.isEmpty(valueMap) && valueMap.containsKey(preferredLanguage)
+      ? valueMap.get(preferredLanguage)
+      : firstAvailable;
+  }
 
   public static <V> LanguageObjectBuilder<V> builder(Class<V> valueClass) {
     return new LanguageObjectBuilder<>();
