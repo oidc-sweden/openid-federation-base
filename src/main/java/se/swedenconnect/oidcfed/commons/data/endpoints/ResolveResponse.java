@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -20,7 +21,9 @@ import com.nimbusds.jwt.SignedJWT;
 import lombok.Getter;
 import lombok.Setter;
 import se.swedenconnect.oidcfed.commons.data.oidcfed.EntityStatement;
+import se.swedenconnect.oidcfed.commons.data.oidcfed.TrustMarkClaim;
 import se.swedenconnect.oidcfed.commons.security.JWTSigningCredential;
+import se.swedenconnect.oidcfed.commons.utils.OidcUtils;
 
 /**
  * Class implementing the Resolve Response
@@ -47,15 +50,8 @@ public class ResolveResponse {
     this.metadata = (Map<String, Object>) claimsSet.getClaim("metadata");
     this.trustMarks = claimsSet.getClaim("trust_marks") == null
       ? null
-      : ((List<String>) claimsSet.getClaim("trust_marks")).stream()
-      .map(s -> {
-        try {
-          return SignedJWT.parse(s);
-        }
-        catch (ParseException e) {
-          throw new RuntimeException(e);
-        }
-      }).toList();
+      : OidcUtils.getOidcObjectMapper().convertValue(claimsSet.getClaim("trust_marks"), new TypeReference<>() {
+    });
     this.trustChain = claimsSet.getClaim("trust_chain") == null
       ? null
       : ((List<String>) claimsSet.getClaim("trust_chain")).stream()
@@ -83,10 +79,9 @@ public class ResolveResponse {
 
   @Getter @Setter Map<String, Object> metadata;
 
-  @Getter @Setter List<SignedJWT> trustMarks;
+  @Getter @Setter List<TrustMarkClaim> trustMarks;
 
   @Getter @Setter List<EntityStatement> trustChain;
-
 
   public SignedJWT sign(JWTSigningCredential signingCredential, List<JWSAlgorithm> permittedAlgorithms)
     throws NoSuchAlgorithmException, JOSEException {
@@ -102,7 +97,7 @@ public class ResolveResponse {
     addClaim("metadata", getMetadata(), claimsSetBuilder);
     addClaim("trust_marks", this.trustMarks == null
         ? null
-        : this.trustMarks.stream().map(JWSObject::serialize).toList(),
+        : this.trustMarks,
       claimsSetBuilder);
     addClaim("trust_chain", this.trustChain == null
         ? null
@@ -121,7 +116,7 @@ public class ResolveResponse {
   }
 
   private void addClaim(String claimName, Object value, JWTClaimsSet.Builder claimsSetBuilder) {
-    if (value == null){
+    if (value == null) {
       return;
     }
     claimsSetBuilder.claim(claimName, value);
@@ -147,36 +142,37 @@ public class ResolveResponse {
       this.resolveResponse = new ResolveResponse();
     }
 
-    public ResolveResponseBuilder issuer (String issuer) {
+    public ResolveResponseBuilder issuer(String issuer) {
       this.resolveResponse.issuer = issuer;
       return this;
     }
-    public ResolveResponseBuilder subject (String subject) {
+
+    public ResolveResponseBuilder subject(String subject) {
       this.resolveResponse.subject = subject;
       return this;
     }
 
-    public ResolveResponseBuilder issueTime (Date issueTime) {
+    public ResolveResponseBuilder issueTime(Date issueTime) {
       this.resolveResponse.issueTime = issueTime;
       return this;
     }
 
-    public ResolveResponseBuilder expriationTime (Date expriationTime) {
+    public ResolveResponseBuilder expriationTime(Date expriationTime) {
       resolveResponse.expirationTime = expriationTime;
       return this;
     }
 
-    public ResolveResponseBuilder metadata (Map<String, Object> metadata) {
+    public ResolveResponseBuilder metadata(Map<String, Object> metadata) {
       this.resolveResponse.metadata = metadata;
       return this;
     }
 
-    public ResolveResponseBuilder trustMarks (List<SignedJWT> trustMarks) {
+    public ResolveResponseBuilder trustMarks(List<TrustMarkClaim> trustMarks) {
       this.resolveResponse.trustMarks = trustMarks;
       return this;
     }
 
-    public ResolveResponseBuilder trustChain (List<EntityStatement> trustChain) {
+    public ResolveResponseBuilder trustChain(List<EntityStatement> trustChain) {
       this.resolveResponse.trustChain = trustChain;
       return this;
     }

@@ -65,7 +65,7 @@ class ResolveResponseTest {
       .subject("subject")
       .expriationTime(Date.from(Instant.now().plus(Duration.ofDays(10))))
       .metadata(opMetadata.toJsonObject())
-      .trustMarks(List.of(trustMark.getSignedJWT()))
+      .trustMarks(List.of(new TrustMarkClaim(trustMark.getId(), trustMark.getSignedJWT().serialize())))
       .trustChain(List.of(entityStatement))
       .build();
 
@@ -91,7 +91,7 @@ class ResolveResponseTest {
     );
     JWTClaimsSet rrcs = signedResponse.getJWTClaimsSet();
     assertEquals(entityStatement.getSignedJWT().serialize(), ((List<?>)claimsSet.getClaim("trust_chain")).get(0));
-    assertEquals(trustMark.getSignedJWT().serialize(), ((List<?>)claimsSet.getClaim("trust_marks")).get(0));
+    assertEquals(trustMark.getSignedJWT().serialize(), ((TrustMarkClaim)((List<?>)claimsSet.getClaim("trust_marks")).get(0)).getTrustMark());
     assertEquals(rrcs.getIssueTime(), claimsSet.getIssueTime());
     assertEquals(rrcs.getIssuer(), claimsSet.getIssuer());
     assertEquals(rrcs.getSubject(), claimsSet.getSubject());
