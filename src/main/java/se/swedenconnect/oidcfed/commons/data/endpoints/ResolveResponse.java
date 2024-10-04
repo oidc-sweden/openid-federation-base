@@ -97,7 +97,7 @@ public class ResolveResponse {
     addClaim("metadata", getMetadata(), claimsSetBuilder);
     addClaim("trust_marks", this.trustMarks == null
         ? null
-        : this.trustMarks,
+        : OidcUtils.OBJECT_MAPPER.convertValue(this.trustMarks, List.class),
       claimsSetBuilder);
     addClaim("trust_chain", this.trustChain == null
         ? null

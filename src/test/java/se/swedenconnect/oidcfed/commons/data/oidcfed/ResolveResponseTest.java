@@ -91,7 +91,10 @@ class ResolveResponseTest {
     );
     JWTClaimsSet rrcs = signedResponse.getJWTClaimsSet();
     assertEquals(entityStatement.getSignedJWT().serialize(), ((List<?>)claimsSet.getClaim("trust_chain")).get(0));
-    assertEquals(trustMark.getSignedJWT().serialize(), ((TrustMarkClaim)((List<?>)claimsSet.getClaim("trust_marks")).get(0)).getTrustMark());
+    Map<String, Object> trustMarkMap = (Map<String, Object>) ((List<?>) claimsSet.getClaim("trust_marks")).get(0);
+    TrustMarkClaim trustMarkClaim = OidcUtils.OBJECT_MAPPER.convertValue(trustMarkMap, TrustMarkClaim.class);
+    assertEquals(trustMark.getSignedJWT().serialize(), trustMarkClaim.getTrustMark());
+    assertEquals(trustMark.getSignedJWT().serialize(), parsedResponse.getTrustMarks().get(0).getTrustMark());
     assertEquals(rrcs.getIssueTime(), claimsSet.getIssueTime());
     assertEquals(rrcs.getIssuer(), claimsSet.getIssuer());
     assertEquals(rrcs.getSubject(), claimsSet.getSubject());
