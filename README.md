@@ -1,4 +1,11 @@
-# Java OpenID federation - core
+![Logo](https://www.oidc.se/img/oidc-logo.png)
+
+# OpenID Federation Base Library
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/se.oidc.oidfed/openid-federation-base/badge.svg)](https://maven-badges.herokuapp.com/maven-central/se.oidc.oidfed/openid-federation-base)
+
+
+## About
 
 This library is a core library implementing the OpenID federation standard under development.
 
@@ -40,14 +47,11 @@ Multi-language support is provided in all Metadata classes by assigning the meta
 When serialized to JSON, this object type produces language tagged json parameter names.
 When JSON string is deserialized to a Java object, then a LanguageObject value is created, allowing structured access to language tagged data.
 
-This functionality is implemented by the `se.swedenconnect.oidcfed.commons.data.OidcLangJsonSerializer`
+This functionality is implemented by the [OidcLangJsonSerializer](https://github.com/oidc-sweden/openid-federation-base/blob/main/src/main/java/se/oidc/oidfed/base/data/OidcLangJsonSerializer.java) class.
 
 **Metadata policy serialization**
 
-The `se.swedenconnect.oidcfed.commons.process.metadata.MetadataPolicySerializer` provides an interface for serialization
-of metadata policy between JSON and Java objects.
-This allows independent customization of metadata policy expression formats, under discussion.
-If the expression format changes, then this can be handled by a separate implementation of this serializer.
+The [MetadataPolicySerializer](https://github.com/oidc-sweden/openid-federation-base/blob/main/src/main/java/se/oidc/oidfed/base/process/metadata/MetadataPolicySerializer.java) provides an interface for serialization of metadata policy between JSON and Java objects. This allows independent customization of metadata policy expression formats, under discussion. If the expression format changes, then this can be handled by a separate implementation of this serializer.
 
 ## Builder support
 
@@ -161,15 +165,16 @@ The primary reason for this is that chain validation is used as a subcomponent o
 
 **Chain validation implementation**
 
-Chain validation is supported by implementing the `se.swedenconnect.oidcfed.commons.process.chain.FederationChainValidator` interface.
+Chain validation is supported by implementing the [FederationChainValidator](https://github.com/oidc-sweden/openid-federation-base/blob/main/src/main/java/se/oidc/oidfed/base/process/chain/FederationChainValidator.java) interface.
 
-A default implementation is provided by `se.swedenconnect.oidcfed.commons.process.chain.impl.DefaultFederationChainValidator`
+A default implementation is provided by [DefaultFederationChainValidator](https://github.com/oidc-sweden/openid-federation-base/blob/main/src/main/java/se/oidc/oidfed/base/process/chain/impl/DefaultFederationChainValidator.java).
 
 **Trust Mark validation implementation**
 
-Trust Mark validation is supported by implementing the `se.swedenconnect.oidcfed.commons.process.chain.TrustMarkValidator` interface.
+Trust Mark validation is supported by implementing the [TrustMarkValidator](https://github.com/oidc-sweden/openid-federation-base/blob/main/src/main/java/se/oidc/oidfed/base/process/chain/TrustMarkValidator.java)
+interface.
 
-A default implementation is provided by `se.swedenconnect.oidcfed.commons.process.chain.impl.DefaultTrustMarkValidator`
+A default implementation is provided by [DefaultTrustMarkValidator](https://github.com/oidc-sweden/openid-federation-base/blob/main/src/main/java/se/oidc/oidfed/base/process/chain/impl/DefaultTrustMarkValidator.java)
 
 The default implementation of the Trust Mark validator also requires implementations of:
 
@@ -178,3 +183,6 @@ The default implementation of the Trust Mark validator also requires implementat
 
 These interfaces are not implemented in this library.
 
+---
+
+Copyright &copy; 2024, [OIDC Sweden](https://www.oidc.se). Licensed under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0).
