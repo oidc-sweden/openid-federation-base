@@ -15,31 +15,17 @@
  */
 package se.oidc.oidfed.base.data.federation;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
-import lombok.Getter;
 
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Metadata claims data for both the metadata claim and the metadata_policy claim
  */
-@Getter
-@JsonSerialize(using = EntityMetadataInfoClaim.EntityMetadataInfoClaimSerializer.class)
-@JsonDeserialize(using = EntityMetadataInfoClaim.EntityMetadataInfoClaimDeserializer.class)
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EntityMetadataInfoClaim {
 
   public static final String OPENID_RELYING_PARTY = "openid_relying_party";
@@ -55,7 +41,6 @@ public class EntityMetadataInfoClaim {
    * Constructor for the EntityMetadataInfoClaim class.
    */
   protected EntityMetadataInfoClaim() {
-    claimObjects = new HashMap<>();
   }
 
   /*
@@ -79,7 +64,8 @@ public class EntityMetadataInfoClaim {
   public void setOidcRelyingPartyMetadataObject(Map<String, Object> oidcRelyingPartyMetadata){
     this.claimObjects.put(OPENID_RELYING_PARTY, oidcRelyingPartyMetadata);
 
-  }
+  @JsonProperty("oauth_authorization_server")
+  protected Map<String, Object> authorizationServerMetadataObject;
 
   /**
    * Retrieves the OpenID Connect Provider metadata as a JSON object map.
@@ -219,7 +205,7 @@ public class EntityMetadataInfoClaim {
      */
     public EntityMetadataInfoClaimBuilder oidcRelyingPartyMetadataObject(
         final Map<String, Object> oidcRelyingPartyMetadataObject) {
-      this.entityMetadataInfoClaim.setOidcRelyingPartyMetadataObject(oidcRelyingPartyMetadataObject);
+      this.entityMetadataInfoClaim.oidcRelyingPartyMetadataObject = oidcRelyingPartyMetadataObject;
       return this;
     }
 
@@ -230,7 +216,7 @@ public class EntityMetadataInfoClaim {
      * @return EntityMetadataInfoClaimBuilder instance for method chaining
      */
     public EntityMetadataInfoClaimBuilder opMetadataObject(final Map<String, Object> opMetadataObject) {
-      this.entityMetadataInfoClaim.setOpMetadataObject(opMetadataObject);
+      this.entityMetadataInfoClaim.opMetadataObject = opMetadataObject;
       return this;
     }
 
@@ -242,7 +228,7 @@ public class EntityMetadataInfoClaim {
      */
     public EntityMetadataInfoClaimBuilder authorizationServerMetadataObject(
         final Map<String, Object> authorizationServerMetadataObject) {
-      this.entityMetadataInfoClaim.setAuthorizationServerMetadataObject(authorizationServerMetadataObject);
+      this.entityMetadataInfoClaim.authorizationServerMetadataObject = authorizationServerMetadataObject;
       return this;
     }
 
@@ -254,7 +240,7 @@ public class EntityMetadataInfoClaim {
      */
     public EntityMetadataInfoClaimBuilder oauthClientMetadataObject(
         final Map<String, Object> oauthClientMetadataObject) {
-      this.entityMetadataInfoClaim.setOauthClientMetadataObject(oauthClientMetadataObject);
+      this.entityMetadataInfoClaim.oauthClientMetadataObject = oauthClientMetadataObject;
       return this;
     }
 
@@ -266,7 +252,7 @@ public class EntityMetadataInfoClaim {
      */
     public EntityMetadataInfoClaimBuilder oauthResourceMetadataObject(
         final Map<String, Object> oauthResourceMetadataObject) {
-      this.entityMetadataInfoClaim.setOauthResourceMetadataObject(oauthResourceMetadataObject);
+      this.entityMetadataInfoClaim.oauthResourceMetadataObject = oauthResourceMetadataObject;
       return this;
     }
 

@@ -44,7 +44,10 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * OID federation Utilities.
+ * OIDC Utils.
+ *
+ * @author Martin Lindström (martin@idsec.se)
+ * @author Stefan Santesson (stefan@idsec.se)
  */
 public class OidcUtils {
 
@@ -67,7 +70,7 @@ public class OidcUtils {
    *
    * @param dataObject Data object containing parameters that are not part of the extension set
    * @param payload payload of the JWT from which the extension claims are collected
-   * @return JSON object map containing the extension claims
+   * @return json object map containing the extension claims
    * @throws JsonProcessingException JSON processing errors
    */
   public static Map<String, Object> getExtensionProperties(final Map<String, Object> payload, Object dataObject)
@@ -214,14 +217,6 @@ public class OidcUtils {
     }
   }
 
-  /**
-   * Verifies the type of a given value based on the specified value type.
-   *
-   * @param value the value to verify
-   * @param valueType the type of value expected
-   * @return the verified value as a String
-   * @throws PolicyTranslationException if the type verification fails or is unsupported
-   */
   public static String verifyValueType(final Object value, final String valueType) throws PolicyTranslationException {
     switch (valueType) {
     case ValueType.STRING:
@@ -262,14 +257,6 @@ public class OidcUtils {
     }
   }
 
-  /**
-   * Converts a List of strings to an object based on the specified value type.
-   *
-   * @param value the List of strings to convert
-   * @param valueType the type of object to convert to
-   * @return the converted object
-   * @throws PolicyTranslationException if an error occurs during conversion
-   */
   public static Object convertToValueObject(final List<String> value, final String valueType)
       throws PolicyTranslationException {
 
@@ -322,13 +309,6 @@ public class OidcUtils {
     }
   }
 
-  /**
-   * Retrieves a JWS verifier based on the provided JWK key. Supports EC and RSA keys.
-   *
-   * @param jwk the JWK key to obtain a JWS verifier for
-   * @return a JWS verifier for the provided JWK key
-   * @throws JOSEException if an unsupported key type is encountered
-   */
   public static JWSVerifier getVerifier(final JWK jwk) throws JOSEException {
 
     final KeyType keyType = jwk.getKeyType();
@@ -341,14 +321,6 @@ public class OidcUtils {
     throw new JOSEException("Unsupported key type");
   }
 
-  /**
-   * Verify the signed JWT using a JWK set.
-   *
-   * @param signedJWT the SignedJWT to verify
-   * @param jwkSet the JWKSet containing keys for verification
-   * @return true if the JWT signature is valid with any of the keys in the JWK set, false otherwise
-   * @throws JOSEException if an unsupported key type is encountered during verification
-   */
   public static boolean verifySignedJWT(final SignedJWT signedJWT, final JWKSet jwkSet) throws JOSEException {
 
     for (final JWK jwk : jwkSet.getKeys()) {
@@ -359,27 +331,10 @@ public class OidcUtils {
     return false;
   }
 
-  /**
-   * Verify the validity time of a SignedJWT by checking the issue time and expiration time against the current time.
-   * Throws a ParseException if parsing fails and JOSEException if any validation check fails.
-   *
-   * @param signedJWT the SignedJWT to verify
-   * @throws ParseException if parsing fails
-   * @throws JOSEException if validation checks fail
-   */
   public static void verifyValidityTime(final SignedJWT signedJWT) throws ParseException, JOSEException {
     verifyValidityTime(signedJWT, 15);
   }
 
-  /**
-   * Verify the validity time of a SignedJWT by checking the issue time and expiration time against the current time allowing time skew.
-   * Throws a ParseException if parsing fails and JOSEException if any validation check fails.
-   *
-   * @param signedJWT the SignedJWT to verify
-   * @param timeSkew the time skew in seconds to allow for time differences
-   * @throws ParseException if parsing fails
-   * @throws JOSEException if any validation check fails
-   */
   public static void verifyValidityTime(final SignedJWT signedJWT, final int timeSkew)
       throws ParseException, JOSEException {
 
@@ -404,25 +359,20 @@ public class OidcUtils {
     }
   }
 
-  /**
-   * Converts any object to a JSON object map
-   *
-   * @param object the object to convert to a JSON object map
-   * @return JSON object map
-   */
   public static Map<String, Object> toJsonObject(final Object object) {
-    return OBJECT_MAPPER.convertValue(object, new TypeReference<>() {});
+    try {
+      return OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsString(object), new TypeReference<>() {
+      });
+    }
+    catch (final JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
+
   }
 
-  /**
-   * Converts a JSON object map to a target class
-   *
-   * @param jsonObject JSON object map
-   * @param targetClassType target class type
-   * @return object as an instance of the targetClassType
-   * @param <T> target class
-   */
-  public static <T> T readJsonObject(final Map<String, Object> jsonObject, final Class<T> targetClassType) {
-    return OBJECT_MAPPER.convertValue(jsonObject, targetClassType);
+  public static <T> T readJsonObject(final Map<String, Object> jsonObject, final Class<T> targetClassType)
+      throws JsonProcessingException {
+    return OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsString(jsonObject), targetClassType);
   }
+
 }
