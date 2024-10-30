@@ -260,7 +260,7 @@ public class DefaultFederationChainValidator implements FederationChainValidator
       return OidcUtils.readJsonObject(metadataJsonObject, EntityMetadataInfoClaim.class);
 
     }
-    catch (final PolicyTranslationException | PolicyProcessingException | JsonProcessingException e) {
+    catch (final PolicyTranslationException | PolicyProcessingException e) {
       throw new ChainValidationException("Failed to process metadata against policy", e);
     }
 
@@ -339,14 +339,7 @@ public class DefaultFederationChainValidator implements FederationChainValidator
       }
       collectedMetadataObject.put(entityType, collectedMetadataParams);
     }
-
-    try {
-      return OidcUtils.readJsonObject(collectedMetadataObject, EntityMetadataInfoClaim.class);
-    }
-    catch (final JsonProcessingException e) {
-      throw new ChainValidationException("Illegal collected metadata", e);
-    }
-
+    return OidcUtils.readJsonObject(collectedMetadataObject, EntityMetadataInfoClaim.class);
   }
 
   private List<String> getAllKeys(Map<String, ?> firstMap, Map<String, ?> secondMap) {
