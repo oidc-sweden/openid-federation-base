@@ -150,7 +150,7 @@ class MetadataTests {
 
   @Test
   void testClientMetadata() throws Exception {
-    final ClientMetadata clientMetadata = ClientMetadata.builder()
+    final ClientMetadata clientMetadata = ClientMetadata.oauthClientMetadataBuilder()
         .build();
     // TODO write Client metadata test
   }

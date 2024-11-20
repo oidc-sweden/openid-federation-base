@@ -269,7 +269,7 @@ public class RelyingPartyMetadata extends BasicClientMetadata {
 
     /** {@inheritDoc} */
     @Override
-    RelyingPartyMetadataBuilder getReturnedBuilderInstance() {
+    protected RelyingPartyMetadataBuilder getReturnedBuilderInstance() {
       return this;
     }
 

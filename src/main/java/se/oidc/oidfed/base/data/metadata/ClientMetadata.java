@@ -43,7 +43,7 @@ public class ClientMetadata extends BasicClientMetadata {
   @JsonProperty("scope")
   @Getter
   @Setter
-  private String scope;
+  protected String scope;
 
   /**
    * A unique identifier string (e.g., a Universally Unique Identifier (UUID)) assigned by the client developer or
@@ -52,7 +52,7 @@ public class ClientMetadata extends BasicClientMetadata {
   @JsonProperty("software_id")
   @Getter
   @Setter
-  private String softwareId;
+  protected String softwareId;
 
   /**
    * A version identifier string for the client software identified by "software_id".
@@ -60,7 +60,7 @@ public class ClientMetadata extends BasicClientMetadata {
   @JsonProperty("software_version")
   @Getter
   @Setter
-  private String softwareVersion;
+  protected String softwareVersion;
 
   /**
    * Constructor
@@ -86,44 +86,58 @@ public class ClientMetadata extends BasicClientMetadata {
    *
    * @return builder
    */
-  public static ClientMetadataBuilder builder() {
-    return new ClientMetadataBuilder();
+  public static ClientMetadataBuilder<ClientMetadata, ClientMetadataBuilder<?,?>> oauthClientMetadataBuilder() {
+    return new ClientMetadataBuilder<>(new ClientMetadata());
   }
 
   /**
    * Client metadata builder class
    */
-  public static class ClientMetadataBuilder extends BasicClientMetadataBuilder<ClientMetadata, ClientMetadataBuilder> {
+  public static class ClientMetadataBuilder<T extends ClientMetadata, B extends ClientMetadataBuilder<?, ?>> extends BasicClientMetadataBuilder<T, B> {
 
     /**
      * Constructor
      */
-    private ClientMetadataBuilder() {
-      super(new ClientMetadata());
+    public ClientMetadataBuilder(T metadata) {
+      super(metadata);
     }
 
     @Override
-    ClientMetadataBuilder getReturnedBuilderInstance() {
-      return this;
+    @SuppressWarnings("unchecked")
+    protected B getReturnedBuilderInstance() {
+      if (this.getClass() == ClientMetadataBuilder.class) {
+        return (B) this;
+      }
+      return getSubClassBuilderInstance();
     }
 
-    public ClientMetadataBuilder scope(final String scope) {
+    /**
+     * This method handles returning of a subclass builder instance. Any subclass of this builder class MUST @Override this method
+     * and return its builder instance.
+     *
+     * @return builder subclass instance
+     */
+    public B getSubClassBuilderInstance() {
+      throw new RuntimeException("This method must be overridden by subclass, returning the correct builder");
+    }
+
+    public B scope(final String scope) {
       this.metadata.scope = scope;
-      return this;
+      return this.getReturnedBuilderInstance();
     }
 
-    public ClientMetadataBuilder softwareId(final String softwareId) {
+    public B softwareId(final String softwareId) {
       this.metadata.softwareId = softwareId;
-      return this;
+      return this.getReturnedBuilderInstance();
     }
 
-    public ClientMetadataBuilder softwareVersion(final String softwareVersion) {
+    public B softwareVersion(final String softwareVersion) {
       this.metadata.softwareVersion = softwareVersion;
-      return this;
+      return this.getReturnedBuilderInstance();
     }
 
     @Override
-    public ClientMetadata build() {
+    public T build() {
       return this.metadata;
     }
   }

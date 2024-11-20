@@ -98,7 +98,7 @@ public class AuthorizationServerMetadata extends BasicASMetadata {
 
     /** {@inheritDoc} */
     @Override
-    AuthorizationServerMetadataBuilder getReturnedBuilderInstance() {
+    protected AuthorizationServerMetadataBuilder getReturnedBuilderInstance() {
       return this;
     }
 

@@ -223,7 +223,7 @@ public abstract class AbstractOidcFedMetadata implements LanguageTaggedJson {
      *
      * @return the builder instance to return for cascading
      */
-    abstract B getReturnedBuilderInstance();
+    protected abstract B getReturnedBuilderInstance();
 
     /**
      * Build metadata
