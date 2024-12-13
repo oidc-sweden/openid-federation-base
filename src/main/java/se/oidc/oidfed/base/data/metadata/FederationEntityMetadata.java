@@ -158,7 +158,7 @@ public class FederationEntityMetadata extends AbstractOidcFedMetadata {
 
     /** {@inheritDoc} */
     @Override
-    FederationEntityMetadataBuilder getReturnedBuilderInstance() {
+    protected FederationEntityMetadataBuilder getReturnedBuilderInstance() {
       return this;
     }
 

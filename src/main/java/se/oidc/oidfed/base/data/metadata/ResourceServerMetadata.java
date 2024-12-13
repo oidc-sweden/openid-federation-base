@@ -76,7 +76,7 @@ public class ResourceServerMetadata extends AbstractOidcFedMetadata {
 
     /** {@inheritDoc} */
     @Override
-    ResourceServerMetadataBuilder getReturnedBuilderInstance() {
+    protected ResourceServerMetadataBuilder getReturnedBuilderInstance() {
       return this;
     }
 

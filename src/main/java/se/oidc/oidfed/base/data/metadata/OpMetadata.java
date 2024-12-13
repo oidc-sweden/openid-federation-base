@@ -339,7 +339,7 @@ public class OpMetadata extends BasicASMetadata {
 
     /** {@inheritDoc} */
     @Override
-    OpMetadataBuilder getReturnedBuilderInstance() {
+    protected OpMetadataBuilder getReturnedBuilderInstance() {
       return this;
     }
 
