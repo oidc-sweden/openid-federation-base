@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2024 OIDC Sweden
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: Publish artifact
+
+on: [workflow_call]
+
+jobs:
+  publish:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Set up Java for publishing to GitHub Packages
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build, Generate SBOM, and Deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mvn -B clean package cyclonedx:makeAggregateBom
+          mvn -B -e deploy -DskipTests -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/danneleaf/openid-federation-base
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: target/bom.json

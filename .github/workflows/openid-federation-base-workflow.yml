@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2024 OIDC Sweden
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: openid-federation-base workflow
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+  pull_request:
+    branches:
+      - main
+jobs:
+  test:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/test.yml
+  publish-jar: # only on semver tag
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [test]
+    uses: ./.github/workflows/publishjar.yml
