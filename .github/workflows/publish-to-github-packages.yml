@@ -40,7 +40,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mvn -B clean package cyclonedx:makeAggregateBom
-          mvn -B -e deploy -DskipTests -DaltDeploymentRepository=github::https://maven.pkg.github.com/danneleaf/openid-federation-base
+          mvn -B -e deploy -DskipTests -DaltDeploymentRepository=github::https://maven.pkg.github.com/oidc-sweden/openid-federation-base
 
       - name: Upload SBOM
         uses: actions/upload-artifact@v4
