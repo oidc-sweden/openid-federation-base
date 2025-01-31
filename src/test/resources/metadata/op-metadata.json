@@ -1,0 +1,30 @@
+{
+  "response_types_supported" : [ "code" ],
+  "request_parameter_supported" : true,
+  "jwks" : {
+    "keys" : [ {
+      "kty" : "EC",
+      "crv" : "P-521",
+      "kid" : "1697813357",
+      "x" : "ARw8qW8k0Zs59Z2Q7eYOk_Nr0QkTlLDwUrt0o-OJz0svwco7DI1UWlwHuaIeYiKnxVSPAgoy3oXCZaelHOYdn3Pg",
+      "y" : "AUBzJb-GimoxVSRpL27xiU33g_BXlhg7kLKVbyfIyLDO_9N11USLRUZ6RMUnKf0tB6OFvAQJ3RnOiWE8wnqBImCy"
+    } ]
+  },
+  "introspection_endpoint" : "http:example.com/introspection",
+  "claims_parameter_supported" : true,
+  "ui_locales_supported" : [ "en", "sv" ],
+  "scopes_supported" : [ "openid", "profile", "email", "address", "phone", "offline_access" ],
+  "issuer" : "http:example.com/issuer",
+  "acr_values_supported" : [ "http://id.elegnamnden.se/loa/1.0/loa3" ],
+  "authorization_endpoint" : "http:example.com/authorize",
+  "service_documentation" : "http:example.com/service-documentation",
+  "userinfo_endpoint" : "http:example.com/userinfo",
+  "token_endpoint_auth_signing_alg_values_supported" : [ "RS256" ],
+  "display_values_supported" : [ "page", "popup", "touch" ],
+  "userinfo_signing_alg_values_supported" : [ "RS256" ],
+  "claims_supported" : [ "sub", "name", "given_name", "family_name" ],
+  "require_request_uri_registration" : false,
+  "token_endpoint_auth_methods_supported" : [ "private_key_jwt" ],
+  "response_modes_supported" : [ "query", "fragment", "form_post" ],
+  "token_endpoint" : "http:example.com/token"
+}

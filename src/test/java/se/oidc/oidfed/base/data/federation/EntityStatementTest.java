@@ -23,9 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import se.oidc.oidfed.base.configuration.PolicyParameterFormats;
-import se.oidc.oidfed.base.data.LanguageObject;
-import se.oidc.oidfed.base.data.metadata.OpMetadata;
-import se.oidc.oidfed.base.data.metadata.RelyingPartyMetadata;
 import se.oidc.oidfed.base.data.metadata.policy.EntityTypeMetadataPolicy;
 import se.oidc.oidfed.base.data.metadata.policy.MetadataParameterPolicy;
 import se.oidc.oidfed.base.data.federation.builders.TrustMarkIssuersBuilder;
@@ -39,6 +36,7 @@ import se.oidc.oidfed.base.process.metadata.policyoperators.SkipSubordinatesPoli
 import se.oidc.oidfed.base.process.metadata.policyoperators.SubsetOfPolicyOperator;
 import se.oidc.oidfed.base.process.metadata.policyoperators.ValuePolicyOperator;
 import se.oidc.oidfed.base.testdata.TestCredentials;
+import se.oidc.oidfed.base.testdata.TestMetadata;
 import se.oidc.oidfed.base.utils.OidcUtils;
 
 import java.security.cert.X509Certificate;
@@ -92,27 +90,8 @@ class EntityStatementTest {
             .addCriticalClaim("other_critical_claim")
             .jwkSet(this.getJwkSet(TestCredentials.p256Credential.getCertificate()))
             .metadata(EntityMetadataInfoClaim.builder()
-                .opMetadataObject(OpMetadata.builder()
-                    .issuer("Issuer")
-                    .organizationName(LanguageObject.builder(String.class)
-                        .defaultValue("DIGG")
-                        .langValue("sv", "Svenska")
-                        .langValue("en", "English")
-                        .langValue("es", "Español")
-                        .build())
-                    .jwkSet(this.getJwkSet(TestCredentials.p521Credential.getCertificate()))
-                    .signedJwksUri("http://example.com/jwkset")
-                    .oidcSeDiscoUserMessageSupported(true)
-                    .oidcSeDiscoAuthnProviderSupported(true)
-                    .oidcSeDiscoUserMessageSupportedMimeTypes(List.of("text/plain"))
-                    .build().toJsonObject())
-                .oidcRelyingPartyMetadataObject(RelyingPartyMetadata.builder()
-                    .organizationName(LanguageObject.builder(String.class)
-                        .defaultValue("DIGG")
-                        .langValue("sv", "Myndigheten för digital förvaltning")
-                        .langValue("en", "Government Agency for Digital Government")
-                        .build())
-                    .build().toJsonObject())
+                .opMetadataObject(TestMetadata.opMetadata)
+                .oidcRelyingPartyMetadataObject(TestMetadata.rpMetadata)
                 .build())
             .addPolicyLanguageCriticalClaim(RegexpPolicyOperator.OPERATOR_NAME)
             .addPolicyLanguageCriticalClaim(ValuePolicyOperator.OPERATOR_NAME)
@@ -179,9 +158,8 @@ class EntityStatementTest {
     // Parse the statement back to Java
     final EntityStatement parsedEntityStatement = new EntityStatement(entityStatement.getSignedJWT());
     final Map<String, Object> opMetadataObject = parsedEntityStatement.getMetadata().getOpMetadataObject();
-    final OpMetadata parsedOpMetadata = OpMetadata.getJsonSerializer().parse(opMetadataObject);
 
-    log.info("Parsed OP metadata:\n{}", parsedOpMetadata.toJson(true));
+    log.info("Parsed OP metadata:\n{}", OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(opMetadataObject));
 
   }
 

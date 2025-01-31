@@ -1,0 +1,5 @@
+{
+  "federation_fetch_endpoint" : "https://example.com/fetchEndpoint",
+  "federation_trust_mark_endpoint" : "https://example.com/trustMarkEndpoint",
+  "federation_list_endpoint" : "https://example.com/listEndpoint"
+}

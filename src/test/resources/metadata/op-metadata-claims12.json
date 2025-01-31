@@ -1,0 +1,4 @@
+{
+  "scopes_supported" : [ "openid" ],
+  "claims_supported" : [ "claim1", "claim2" ]
+}
