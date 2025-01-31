@@ -22,9 +22,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import se.oidc.oidfed.base.configuration.PolicyParameterFormats;
-import se.oidc.oidfed.base.data.metadata.FederationEntityMetadata;
-import se.oidc.oidfed.base.data.metadata.OpMetadata;
-import se.oidc.oidfed.base.data.metadata.RelyingPartyMetadata;
 import se.oidc.oidfed.base.data.metadata.policy.EntityTypeMetadataPolicy;
 import se.oidc.oidfed.base.data.metadata.policy.MetadataParameterPolicy;
 import se.oidc.oidfed.base.data.metadata.policy.SkipSubMetadataParameterPolicy;
@@ -115,11 +112,7 @@ public class TestEntityStatements {
         .sigCredential(TestCredentials.ie2Sig)
         .authorityHints(List.of("ie1", "ta1"))
         .metadata(EntityMetadataInfoClaim.builder()
-            .federationEntityMetadataObject(FederationEntityMetadata.builder()
-                .federationFetchEndpoint("https://example.com/fetchEndpoint")
-                .federationListEndpoint("https://example.com/listEndpoint")
-                .federationTrustMarkEndpoint("https://example.com/trustMarkEndpoint")
-                .build().toJsonObject())
+            .federationEntityMetadataObject(TestMetadata.federationEntityMetadata)
             .build())
         .trustMark(false);
   }
@@ -145,10 +138,7 @@ public class TestEntityStatements {
         .trustMark(true)
         .authorityHints(List.of("ie1", "ie2"))
         .metadata(EntityMetadataInfoClaim.builder()
-            .opMetadataObject(OpMetadata.builder()
-                .scopesSupported(List.of("openid"))
-                .claimsSupported(List.of("claim1", "claim2", "claim3"))
-                .build().toJsonObject())
+            .opMetadataObject(TestMetadata.opMetadata_claims123)
             .build());
   }
 
@@ -161,10 +151,7 @@ public class TestEntityStatements {
         .trustMark(true)
         .noSubjectDataStorage(true)
         .metadata(EntityMetadataInfoClaim.builder()
-            .opMetadataObject(OpMetadata.builder()
-                .scopesSupported(List.of("openid"))
-                .claimsSupported(List.of("claim1", "claim2", "claim3"))
-                .build().toJsonObject())
+            .opMetadataObject(TestMetadata.opMetadata_claims123)
             .build());
   }
 
@@ -177,9 +164,7 @@ public class TestEntityStatements {
         .noSubjectDataStorage(true)
         .trustMark(true)
         .metadata(EntityMetadataInfoClaim.builder()
-            .oidcRelyingPartyMetadataObject(RelyingPartyMetadata.builder()
-                .responseTypes(List.of("code"))
-                .build().toJsonObject())
+            .oidcRelyingPartyMetadataObject(TestMetadata.rpMetadata_rt)
             .build());
   }
 

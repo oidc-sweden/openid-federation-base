@@ -1,0 +1,19 @@
+{
+  "jwks" : {
+    "keys" : [ {
+      "kty" : "EC",
+      "crv" : "P-521",
+      "kid" : "1697813357",
+      "x" : "ARw8qW8k0Zs59Z2Q7eYOk_Nr0QkTlLDwUrt0o-OJz0svwco7DI1UWlwHuaIeYiKnxVSPAgoy3oXCZaelHOYdn3Pg",
+      "y" : "AUBzJb-GimoxVSRpL27xiU33g_BXlhg7kLKVbyfIyLDO_9N11USLRUZ6RMUnKf0tB6OFvAQJ3RnOiWE8wnqBImCy"
+    } ]
+  },
+  "grant_types" : [ "authorization_code" ],
+  "subject_type" : "pairwise",
+  "organization_name#sv" : "Myndigheten för digital förvaltning",
+  "redirect_uris" : [ "http:example.com/redirect" ],
+  "organization_name" : "DIGG",
+  "token_endpoint_auth_method" : "private_key_jwt",
+  "organization_name#en" : "Government Agency for Digital Government",
+  "response_types" : [ "code" ]
+}

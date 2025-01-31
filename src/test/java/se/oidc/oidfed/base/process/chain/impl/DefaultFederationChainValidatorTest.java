@@ -21,8 +21,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import se.oidc.oidfed.base.configuration.PolicyParameterFormats;
-import se.oidc.oidfed.base.data.metadata.OpMetadata;
-import se.oidc.oidfed.base.data.metadata.RelyingPartyMetadata;
 import se.oidc.oidfed.base.data.metadata.policy.EntityTypeMetadataPolicy;
 import se.oidc.oidfed.base.data.metadata.policy.MetadataParameterPolicy;
 import se.oidc.oidfed.base.data.federation.ConstraintsClaim;
@@ -41,6 +39,7 @@ import se.oidc.oidfed.base.process.metadata.policyoperators.SubsetOfPolicyOperat
 import se.oidc.oidfed.base.process.metadata.policyoperators.SupersetOfPolicyOperator;
 import se.oidc.oidfed.base.testdata.TestCredentials;
 import se.oidc.oidfed.base.testdata.TestEntityStatements;
+import se.oidc.oidfed.base.testdata.TestMetadata;
 import se.oidc.oidfed.base.utils.OidcUtils;
 
 import java.util.Arrays;
@@ -94,10 +93,7 @@ class DefaultFederationChainValidatorTest {
             TestEntityStatements.ie2_op1(),
             TestEntityStatements.op1_conf()),
         EntityMetadataInfoClaim.builder()
-            .opMetadataObject(OpMetadata.builder()
-                .scopesSupported(List.of("openid"))
-                .claimsSupported(List.of("claim1", "claim2", "claim3"))
-                .build().toJsonObject())
+            .opMetadataObject(TestMetadata.opMetadata_claims123)
             .build(), null);
 
     this.performChainTest("Chain with no Entity Configuration", List.of(
@@ -106,9 +102,7 @@ class DefaultFederationChainValidatorTest {
             TestEntityStatements.ie1_ie2_statement(),
             TestEntityStatements.ie2_rp1_metadata()),
         EntityMetadataInfoClaim.builder()
-            .oidcRelyingPartyMetadataObject(RelyingPartyMetadata.builder()
-                .responseTypes(List.of("code"))
-                .build().toJsonObject())
+            .oidcRelyingPartyMetadataObject(TestMetadata.rpMetadata_rt)
             .build(), ChainValidationException.class);
 
     this.performChainTest("Chain with invalid policy merge", List.of(
@@ -136,10 +130,7 @@ class DefaultFederationChainValidatorTest {
             TestEntityStatements.ie2_op1(),
             TestEntityStatements.op1_conf()),
         EntityMetadataInfoClaim.builder()
-            .opMetadataObject(OpMetadata.builder()
-                .scopesSupported(List.of("openid"))
-                .claimsSupported(List.of("claim1", "claim2"))
-                .build().toJsonObject())
+            .opMetadataObject(TestMetadata.opMetadata_claims12)
             .build(), ChainValidationException.class);
 
     this.performChainTest("Chain with Metadata Merge conflict", List.of(
@@ -215,10 +206,7 @@ class DefaultFederationChainValidatorTest {
                 .build()),
         TestEntityStatements.ta1_op1_direct()
     ), EntityMetadataInfoClaim.builder()
-        .opMetadataObject(OpMetadata.builder()
-            .scopesSupported(List.of("openid"))
-            .claimsSupported(List.of("claim1", "claim2", "claim3"))
-            .build().toJsonObject())
+        .opMetadataObject(TestMetadata.opMetadata_claims123)
         .build(), ChainValidationException.class);
 
   }

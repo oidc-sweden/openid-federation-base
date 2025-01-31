@@ -23,8 +23,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import se.oidc.oidfed.base.data.endpoints.ResolveResponse;
-import se.oidc.oidfed.base.data.metadata.OpMetadata;
 import se.oidc.oidfed.base.testdata.TestCredentials;
+import se.oidc.oidfed.base.testdata.TestMetadata;
 import se.oidc.oidfed.base.utils.OidcUtils;
 
 import java.time.Duration;
@@ -41,15 +41,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Slf4j
 class ResolveResponseTest {
 
-  public static OpMetadata opMetadata;
   public static EntityStatement entityStatement;
   public static TrustMark trustMark;
 
   @BeforeAll
   static void init() throws Exception {
-    opMetadata = OpMetadata.builder()
-        .issuer("issuer")
-        .build();
 
     entityStatement = EntityStatement.builder()
         .issuer("issuer")
@@ -76,7 +72,7 @@ class ResolveResponseTest {
         .issueTime(new Date())
         .subject("subject")
         .expriationTime(Date.from(Instant.now().plus(Duration.ofDays(10))))
-        .metadata(opMetadata.toJsonObject())
+        .metadata(TestMetadata.opMetadata)
         .trustMarks(List.of(new TrustMarkClaim(trustMark.getId(), trustMark.getSignedJWT().serialize())))
         .trustChain(List.of(entityStatement))
         .build();
@@ -99,8 +95,8 @@ class ResolveResponseTest {
 
     log.info("Resolve response payload:\n{}", payloadJson);
 
-    JSONAssert.assertEquals(opMetadata.toJson(false),
-        new JSONObject((Map<?, ?>) claimsSet.getClaim("metadata")), true
+    JSONAssert.assertEquals(new JSONObject((Map<?,?>) TestMetadata.opMetadata),
+        new JSONObject((Map<?, ?>) claimsSet.getClaim("metadata")),false
     );
     final JWTClaimsSet rrcs = signedResponse.getJWTClaimsSet();
     assertEquals(entityStatement.getSignedJWT().serialize(), ((List<?>) claimsSet.getClaim("trust_chain")).get(0));
