@@ -15,11 +15,13 @@ but adds some features that are specified in the draft national Swedish OpenID f
 **Core features:**
 
 * Serializers and builders for OpenID federation data types
-* Serializers and builders for federation entity metadata types with multi language support
 * Metadata policy support
 * Chain validation
 
 This library is based on JWT processing from Nimbus combined with JSON processing from Jackson
+
+Since version 3.0.0 this library has removed the metadata support and moved this into a separate lib located at [https://github.com/oidc-sweden/openid-federation-metadata](https://github.com/oidc-sweden/openid-federation-metadata).
+
 
 ## Extended features
 
@@ -60,7 +62,7 @@ All essential federation data objects are supported by builders.
 This is illustrated by the following example used to build and sign an Entity Statement object
 
 ```java
-EntityStatement entityStatement = EntityStatement.builder()
+    final EntityStatement entityStatement = EntityStatement.builder()
   .issuer("issuer")
   .subject("subject")
   .expriationTime(Date.from(Instant.now().plusSeconds(180)))
@@ -75,47 +77,30 @@ EntityStatement entityStatement = EntityStatement.builder()
         .permitted(List.of("https://example.com/permitted"))
         .build())
       .build())
-    .subjectDataPublication(SubjectDataPublication.builder()
-      .entityConfigurationPublicationType(SubjectDataPublication.PUBLICATION_TYPE_NONE)
-      .build(), true)
+    .subjectEntityConfigurationLocation("https://example.com/entity-configuration", true)
     .addCriticalClaim("other_critical_claim")
-    .jwkSet(getJwkSet(TestCredentials.p256Credential.getCertificate()))
+    .jwkSet(this.getJwkSet(TestCredentials.p256Credential.getCertificate()))
     .metadata(EntityMetadataInfoClaim.builder()
-      .opMetadataObject(OpMetadata.builder()
-        .issuer("Issuer")
-        .organizationName(LanguageObject.builder(String.class)
-          .defaultValue("DIGG")
-          .langValue("sv", "Svenska")
-          .langValue("en", "English")
-          .langValue("es", "Español")
-          .build())
-        .jwkSet(getJwkSet(TestCredentials.p521Credential.getCertificate()))
-        .signedJwksUri("http://example.com/jwkset")
-        .oidcSeDiscoUserMessageSupported(true)
-        .oidcSeDiscoAuthnProviderSupported(true)
-        .oidcSeDiscoUserMessageSupportedMimeTypes(List.of("text/plain"))
-        .build().toJsonObject())
-      .oidcRelyingPartyMetadataObject(RelyingPartyMetadata.builder()
-        .organizationName(LanguageObject.builder(String.class)
-          .defaultValue("DIGG")
-          .langValue("sv", "Myndigheten för digital förvaltning")
-          .langValue("en", "Government Agency for Digital Government")
-          .build())
-        .build().toJsonObject())
+      .opMetadataObject(TestMetadata.opMetadata)
+      .oidcRelyingPartyMetadataObject(TestMetadata.rpMetadata)
       .build())
     .addPolicyLanguageCriticalClaim(RegexpPolicyOperator.OPERATOR_NAME)
     .addPolicyLanguageCriticalClaim(ValuePolicyOperator.OPERATOR_NAME)
     .addPolicyLanguageCriticalClaim(SkipSubordinatesPolicyOperator.OPERATOR_NAME)
     .metadataPolicy(EntityMetadataInfoClaim.builder()
       .opMetadataObject(serializer.toJsonObject(EntityTypeMetadataPolicy.builder()
-        .addMetadataParameterPolicy(MetadataParameterPolicy.builder(PolicyParameterFormats.issuer.toMetadataParameter())
-          .add(RegexpPolicyOperator.OPERATOR_NAME, OidcUtils.URI_REGEXP)
-          .build())
-        .addMetadataParameterPolicy(MetadataParameterPolicy.builder(PolicyParameterFormats.acr_values_supported.toMetadataParameter())
+        .addMetadataParameterPolicy(
+          MetadataParameterPolicy.builder(PolicyParameterFormats.issuer.toMetadataParameter())
+            .add(RegexpPolicyOperator.OPERATOR_NAME, OidcUtils.URI_REGEXP)
+            .build())
+        .addMetadataParameterPolicy(MetadataParameterPolicy.builder(
+            PolicyParameterFormats.acr_values_supported.toMetadataParameter())
           .add(SubsetOfPolicyOperator.OPERATOR_NAME,
             List.of("http://id.elegnamnden.se/loa/1.0/loa3", "http://id.elegnamnden.se/loa/1.0/loa4",
-            "http://id.elegnamnden.se/loa/1.0/eidas-sub", "http://id.elegnamnden.se/loa/1.0/eidas-nf-sub",
-            "http://id.elegnamnden.se/loa/1.0/eidas-high", "http://id.elegnamnden.se/loa/1.0/eidas-nf-high"))
+              "http://id.elegnamnden.se/loa/1.0/eidas-sub",
+              "http://id.elegnamnden.se/loa/1.0/eidas-nf-sub",
+              "http://id.elegnamnden.se/loa/1.0/eidas-high",
+              "http://id.elegnamnden.se/loa/1.0/eidas-nf-high"))
           .add(RegexpPolicyOperator.OPERATOR_NAME, List.of(OidcUtils.URI_REGEXP, "^.{3,}$"))
           .build())
         .build()))
@@ -123,7 +108,8 @@ EntityStatement entityStatement = EntityStatement.builder()
     .sourceEndpoint("http://example.com/source")
     .trustMarkIssuers(TrustMarkIssuersBuilder.getInstance()
       .trustMark("https://example.com/tm1", List.of("https://example.com/issuer1"))
-      .trustMark("https://example.com/tm2", List.of("https://example.com/issuer1", "https://example.com/issuer2"))
+      .trustMark("https://example.com/tm2",
+        List.of("https://example.com/issuer1", "https://example.com/issuer2"))
       .build())
     .trustMarks(List.of(
       TrustMarkClaim.builder()
@@ -140,8 +126,10 @@ EntityStatement entityStatement = EntityStatement.builder()
         .trustMark("Signed trust mark JWT")
         .build()))
     .trustMarkOwners(TrustMarkOwnersBuilder.getInstance()
-      .trustMark("https://example.com/tm1", "https://example.com/owner1", getJwkSet(TestCredentials.p256Credential.getCertificate()))
-      .trustMark("https://example.com/tm2", "https://example.com/owner2", getJwkSet(TestCredentials.p256Credential.getCertificate()))
+      .trustMark("https://example.com/tm1", "https://example.com/owner1",
+        this.getJwkSet(TestCredentials.p256Credential.getCertificate()))
+      .trustMark("https://example.com/tm2", "https://example.com/owner2",
+        this.getJwkSet(TestCredentials.p256Credential.getCertificate()))
       .build())
     .build())
   .build(TestCredentials.p256JwtCredential, null);
