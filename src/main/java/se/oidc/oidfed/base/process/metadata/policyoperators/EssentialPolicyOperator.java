@@ -17,8 +17,7 @@ package se.oidc.oidfed.base.process.metadata.policyoperators;
 
 import java.util.List;
 
-import org.springframework.lang.NonNull;
-
+import jakarta.annotation.Nonnull;
 import se.oidc.oidfed.base.configuration.ValueType;
 import se.oidc.oidfed.base.process.metadata.PolicyTranslationException;
 import se.oidc.oidfed.base.process.metadata.PolicyMergeException;
@@ -32,7 +31,7 @@ public class EssentialPolicyOperator extends AbstractPolicyOperator<Boolean> {
 
   public static final String OPERATOR_NAME = "essential";
 
-  public EssentialPolicyOperator(@NonNull Boolean value)
+  public EssentialPolicyOperator(@Nonnull Boolean value)
     throws PolicyTranslationException, PolicyProcessingException {
     super(value, ValueType.BOOLEAN);
   }

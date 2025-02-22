@@ -18,9 +18,10 @@ package se.oidc.oidfed.base.process.chain.impl;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import jakarta.annotation.Nonnull;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import se.oidc.oidfed.base.data.federation.EntityStatement;
 import se.oidc.oidfed.base.data.federation.TrustMark;
 import se.oidc.oidfed.base.data.federation.TrustMarkOwner;
@@ -53,7 +54,7 @@ public class DefaultTrustMarkValidator implements TrustMarkValidator {
   private final FederationChainValidator chainValidator;
 
   @Override
-  public List<TrustMark> validateTrustMarks(final @NonNull List<TrustMark> trustMarks,
+  public List<TrustMark> validateTrustMarks(final @Nonnull List<TrustMark> trustMarks,
       final @NonNull String subject, final @NonNull String trustAnchor) throws ChainValidationException {
 
     if (trustMarks.isEmpty()) {

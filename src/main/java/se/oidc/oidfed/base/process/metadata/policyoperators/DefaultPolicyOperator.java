@@ -17,8 +17,7 @@ package se.oidc.oidfed.base.process.metadata.policyoperators;
 
 import java.util.List;
 
-import org.springframework.lang.NonNull;
-
+import jakarta.annotation.Nonnull;
 import se.oidc.oidfed.base.process.metadata.PolicyTranslationException;
 import se.oidc.oidfed.base.process.metadata.PolicyMergeException;
 import se.oidc.oidfed.base.process.metadata.PolicyProcessingException;
@@ -58,13 +57,13 @@ public class DefaultPolicyOperator extends AbstractPolicyOperator<Object> {
     return this;
   }
 
-  @Override public List<String> getModifiedMetadataValues(@NonNull List<String> metadataParameterValue) {
+  @Override public List<String> getModifiedMetadataValues(@Nonnull List<String> metadataParameterValue) {
     return metadataParameterValue.isEmpty()
       ? getNormalizedOperatorValue()
       : metadataParameterValue;
   }
 
-  @Override public boolean isMetadataValid(@NonNull List<String> metadataParameterValue) {
+  @Override public boolean isMetadataValid(@Nonnull List<String> metadataParameterValue) {
     return !metadataParameterValue.isEmpty();
   }
 }
