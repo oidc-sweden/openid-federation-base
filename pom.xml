@@ -16,10 +16,8 @@
     <java.version>17</java.version>
 
     <slf4j.version>2.0.16</slf4j.version>
-    <spring.version>6.2.0</spring.version>
     <bc.version>1.80</bc.version>
     <nimbus-jose-jwt.version>10.0.1</nimbus-jose-jwt.version>
-    <oauth2-oidc-sdk.version>11.22.2</oauth2-oidc-sdk.version>
   </properties>
 
   <licenses>
@@ -92,24 +90,6 @@
       </dependency>
 
       <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-beans</artifactId>
-        <version>${spring.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-core</artifactId>
-        <version>${spring.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.nimbusds</groupId>
-        <artifactId>oauth2-oidc-sdk</artifactId>
-        <version>${oauth2-oidc-sdk.version}</version>
-      </dependency>
-
-      <dependency>
         <groupId>org.bouncycastle</groupId>
         <artifactId>bcpkix-jdk18on</artifactId>
         <version>${bc.version}</version>
@@ -131,12 +111,6 @@
         <groupId>se.swedenconnect.security</groupId>
         <artifactId>credentials-support</artifactId>
         <version>2.0.3</version>
-      </dependency>
-
-      <dependency>
-        <groupId>commons-codec</groupId>
-        <artifactId>commons-codec</artifactId>
-        <version>1.18.0</version>
       </dependency>
 
       <dependency>
@@ -172,12 +146,6 @@
       <version>2.18.2</version>
     </dependency>
 
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.18.0</version>
-    </dependency>
-
 
     <!-- Sweden Connect -->
     <dependency>
@@ -188,20 +156,15 @@
     <!-- OIDC -->
     <dependency>
       <groupId>com.nimbusds</groupId>
-      <artifactId>oauth2-oidc-sdk</artifactId>
+      <artifactId>nimbus-jose-jwt</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>se.oidc.nimbus</groupId>
-      <artifactId>oidc-sweden-nimbus</artifactId>
-      <version>0.9.1</version>
-    </dependency>
 
     <!-- Scope TEST -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>5.11.2</version>
+      <version>5.12.0</version>
       <scope>test</scope>
     </dependency>
 
@@ -255,7 +218,6 @@
           <doclint>all,-missing</doclint>
           <links>
             <link>https://javadoc.io/doc/com.nimbusds/nimbus-jose-jwt/${nimbus-jose-jwt.version}</link>
-            <link>https://javadoc.io/doc/com.nimbusds/oauth2-oidc-sdk/${oauth2-oidc-sdk.version}</link>
           </links>
           <detectJavaApiLink>true</detectJavaApiLink>
         </configuration>
