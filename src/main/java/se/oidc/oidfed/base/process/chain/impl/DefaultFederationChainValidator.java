@@ -18,8 +18,8 @@ package se.oidc.oidfed.base.process.chain.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWKSet;
+import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.lang.NonNull;
 import se.oidc.oidfed.base.data.federation.ConstraintsClaim;
 import se.oidc.oidfed.base.data.federation.EntityMetadataInfoClaim;
 import se.oidc.oidfed.base.data.federation.EntityStatement;
@@ -85,7 +85,7 @@ public class DefaultFederationChainValidator implements FederationChainValidator
 
   /** {@inheritDoc} */
   @Override
-  public ChainValidationResult validate(@NonNull final List<EntityStatement> unorderedChain)
+  public ChainValidationResult validate(@Nonnull final List<EntityStatement> unorderedChain)
       throws ChainValidationException {
 
     final List<EntityStatement> chain = this.orderChain(unorderedChain);

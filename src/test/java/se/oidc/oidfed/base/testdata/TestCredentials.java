@@ -24,11 +24,12 @@ import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import lombok.Getter;
-import org.springframework.core.io.FileSystemResource;
 import se.oidc.oidfed.base.security.JWTSigningCredential;
 import se.swedenconnect.security.credential.KeyStoreCredential;
 import se.swedenconnect.security.credential.PkiCredential;
 
+import java.io.InputStream;
+import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
@@ -80,22 +81,23 @@ public class TestCredentials {
   public static final char[] pwd = "Test1234".toCharArray();
 
   static {
-    try {
-      final FileSystemResource keyStoreResource = new FileSystemResource(
-          TestCredentials.class.getResource("/test-keys.jks").getFile());
+    try (InputStream keyStoreStream = TestCredentials.class.getResourceAsStream("/test-keys.jks")) {
 
-      p256Credential = new KeyStoreCredential(keyStoreResource, pwd, "p256", pwd);
-      p256Credential.init();
+      KeyStore keyStore = KeyStore.getInstance("JKS");
+      keyStore.load(keyStoreStream, pwd);
+
+
+
+
+      p256Credential = new KeyStoreCredential(keyStore, "p256", pwd);
       p256JwtCredential = new JWTSigningCredential(List.of(JWSAlgorithm.ES256),
           new ECDSASigner((ECPrivateKey) p256Credential.getPrivateKey()),
           new ECDSAVerifier((ECPublicKey) p256Credential.getPublicKey()), "test_p256");
-      p521Credential = new KeyStoreCredential(keyStoreResource, pwd, "p521", pwd);
-      p521Credential.init();
+      p521Credential = new KeyStoreCredential(keyStore, "p521", pwd);
       p521JwtCredential = new JWTSigningCredential(List.of(JWSAlgorithm.ES512),
           new ECDSASigner((ECPrivateKey) p521Credential.getPrivateKey()),
           new ECDSAVerifier((ECPublicKey) p521Credential.getPublicKey()), "test_p521");
-      rsa3072Credential = new KeyStoreCredential(keyStoreResource, pwd, "rsa3072", pwd);
-      rsa3072Credential.init();
+      rsa3072Credential = new KeyStoreCredential(keyStore, "rsa3072", pwd);
       rsa3072JwtCredential = new JWTSigningCredential(
           List.of(JWSAlgorithm.RS256, JWSAlgorithm.RS384, JWSAlgorithm.RS512, JWSAlgorithm.PS256, JWSAlgorithm.PS384,
               JWSAlgorithm.PS512),
@@ -103,33 +105,28 @@ public class TestCredentials {
           new RSASSAVerifier((RSAPublicKey) rsa3072Credential.getPublicKey()), "test_rsa3072");
 
       // Entity credentials
-      ta1 = new KeyStoreCredential(keyStoreResource, pwd, "ta1", pwd);
-      ta1.init();
+      ta1 = new KeyStoreCredential(keyStore, "ta1", pwd);
       ta1Sig = new JWTSigningCredential(List.of(JWSAlgorithm.ES512),
           new ECDSASigner((ECPrivateKey) ta1.getPrivateKey()), new ECDSAVerifier((ECPublicKey) ta1.getPublicKey()),
           "test_ta1");
 
-      ie1 = new KeyStoreCredential(keyStoreResource, pwd, "ie1", pwd);
-      ie1.init();
+      ie1 = new KeyStoreCredential(keyStore, "ie1", pwd);
       ie1Sig = new JWTSigningCredential(List.of(JWSAlgorithm.ES256),
           new ECDSASigner((ECPrivateKey) ie1.getPrivateKey()), new ECDSAVerifier((ECPublicKey) ie1.getPublicKey()),
           "test_ie1");
 
-      ie2 = new KeyStoreCredential(keyStoreResource, pwd, "ie2", pwd);
-      ie2.init();
+      ie2 = new KeyStoreCredential(keyStore, "ie2", pwd);
       ie2Sig = new JWTSigningCredential(
           List.of(JWSAlgorithm.RS256, JWSAlgorithm.RS384, JWSAlgorithm.RS512, JWSAlgorithm.PS256, JWSAlgorithm.PS384,
               JWSAlgorithm.PS512),
           new RSASSASigner(ie2.getPrivateKey()), new RSASSAVerifier((RSAPublicKey) ie2.getPublicKey()), "test_ie2");
 
-      rp1 = new KeyStoreCredential(keyStoreResource, pwd, "rp1", pwd);
-      rp1.init();
+      rp1 = new KeyStoreCredential(keyStore, "rp1", pwd);
       rp1Sig = new JWTSigningCredential(List.of(JWSAlgorithm.ES256),
           new ECDSASigner((ECPrivateKey) rp1.getPrivateKey()), new ECDSAVerifier((ECPublicKey) rp1.getPublicKey()),
           "test_rp1");
 
-      op1 = new KeyStoreCredential(keyStoreResource, pwd, "op1", pwd);
-      op1.init();
+      op1 = new KeyStoreCredential(keyStore, "op1", pwd);
       op1Sig = new JWTSigningCredential(List.of(JWSAlgorithm.ES256),
           new ECDSASigner((ECPrivateKey) op1.getPrivateKey()), new ECDSAVerifier((ECPublicKey) op1.getPublicKey()),
           "test_op1");

@@ -15,8 +15,8 @@
  */
 package se.oidc.oidfed.base.process.metadata.impl;
 
+import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.lang.NonNull;
 import se.oidc.oidfed.base.configuration.MetadataParameter;
 import se.oidc.oidfed.base.data.metadata.policy.EntityTypeMetadataPolicy;
 import se.oidc.oidfed.base.data.metadata.policy.MetadataParameterPolicy;
@@ -77,8 +77,8 @@ public class SkipSubordinatesMetadataPolicySerializer implements MetadataPolicyS
   }
 
   @Override
-  public EntityTypeMetadataPolicy fromJsonObject(@NonNull final Map<String, Object> jsonObject,
-      @NonNull final List<String> criticalOperators) throws PolicyProcessingException, PolicyTranslationException {
+  public EntityTypeMetadataPolicy fromJsonObject(@Nonnull final Map<String, Object> jsonObject,
+      @Nonnull final List<String> criticalOperators) throws PolicyProcessingException, PolicyTranslationException {
 
     final EntityTypeMetadataPolicy.EntityTypeMetadataPolicyBuilder entityTypeMetadataPolicyBuilder =
         EntityTypeMetadataPolicy.builder();
