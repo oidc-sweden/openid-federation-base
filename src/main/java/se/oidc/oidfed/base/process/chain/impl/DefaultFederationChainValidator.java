@@ -216,7 +216,7 @@ public class DefaultFederationChainValidator implements FederationChainValidator
           .orElse(new ArrayList<>());
       superiorStatementTrustMarks.stream()
           .filter(supTrustMark -> trustMarks.stream()
-              .noneMatch(subjTrustMark -> supTrustMark.getId().equals(subjTrustMark.getId())))
+              .noneMatch(subjTrustMark -> supTrustMark.getTrustMarkId().equals(subjTrustMark.getTrustMarkId())))
           .forEach(trustMarks::add);
     }
     return trustMarks;

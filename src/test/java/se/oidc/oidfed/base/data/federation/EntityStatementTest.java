@@ -122,7 +122,7 @@ class EntityStatementTest {
                 .build())
             .trustMarks(List.of(
                 TrustMarkClaim.builder()
-                    .id("https://example.com/tm1")
+                    .trustMarkId("https://example.com/tm1")
                     .trustMark(TrustMark.builder()
                         .trustMarkId("https://example.com/tm1")
                         .subject("https://example.com/subject")
@@ -131,7 +131,7 @@ class EntityStatementTest {
                         .build(TestCredentials.p256JwtCredential, null).getSignedJWT().serialize())
                     .build(),
                 TrustMarkClaim.builder()
-                    .id("https://example.com/tm2")
+                    .trustMarkId("https://example.com/tm2")
                     .trustMark("Signed trust mark JWT")
                     .build()))
             .trustMarkOwners(TrustMarkOwnersBuilder.getInstance()
