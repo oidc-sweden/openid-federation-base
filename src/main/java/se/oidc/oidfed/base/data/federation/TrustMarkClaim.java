@@ -32,7 +32,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class TrustMarkClaim {
 
-  @JsonProperty("id")
+  @JsonProperty("trust_mark_id")
   private String id;
 
   @JsonProperty("trust_mark")

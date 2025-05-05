@@ -4,7 +4,7 @@
 
   <groupId>se.oidc.oidfed</groupId>
   <artifactId>openid-federation-base</artifactId>
-  <version>3.0.1</version>
+  <version>4.0.0</version>
   <packaging>jar</packaging>
 
   <name>OIDC Sweden :: OpenID Federation :: Base</name>

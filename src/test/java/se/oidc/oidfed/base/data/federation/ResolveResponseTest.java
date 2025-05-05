@@ -59,7 +59,7 @@ class ResolveResponseTest {
         .issueTime(new Date())
         .subject("subject")
         .expriationTime(Date.from(Instant.now().plus(Duration.ofDays(10))))
-        .id("trust_mark_id")
+        .trustMarkId("trust_mark_id")
         .build(TestCredentials.p256JwtCredential, null);
 
   }
@@ -73,7 +73,7 @@ class ResolveResponseTest {
         .subject("subject")
         .expriationTime(Date.from(Instant.now().plus(Duration.ofDays(10))))
         .metadata(TestMetadata.opMetadata)
-        .trustMarks(List.of(new TrustMarkClaim(trustMark.getId(), trustMark.getSignedJWT().serialize())))
+        .trustMarks(List.of(new TrustMarkClaim(trustMark.getTrustMarkId(), trustMark.getSignedJWT().serialize())))
         .trustChain(List.of(entityStatement))
         .build();
 

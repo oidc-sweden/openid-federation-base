@@ -79,13 +79,13 @@ class DefaultTrustMarkValidatorTest {
 
     this.performTrustMarkTest("Default success test",
         List.of(TrustMark.builder()
-            .id("https://example.com/trustMark-1")
+            .trustMarkId("https://example.com/trustMark-1")
             .issuer("https://example.com/ie2")
             .subject("https://example.com/op1")
             .issueTime(new Date())
             .expriationTime(Date.from(Instant.now().plusSeconds(120)))
             .delegation(TrustMarkDelegation.builder()
-                .id("https://example.com/trustMark-1")
+                .trustMarkId("https://example.com/trustMark-1")
                 .issuer("https://example.com/trust-mark-owner")
                 .subject("https://example.com/ie2")
                 .issueTime(new Date())
@@ -158,13 +158,13 @@ class DefaultTrustMarkValidatorTest {
 
     this.performTrustMarkTest("Bad Trust Mark delegation",
         List.of(TrustMark.builder()
-            .id("https://example.com/trustMark-1")
+            .trustMarkId("https://example.com/trustMark-1")
             .issuer("https://example.com/ie2")
             .subject("https://example.com/op1")
             .issueTime(new Date())
             .expriationTime(Date.from(Instant.now().plusSeconds(120)))
             .delegation(TrustMarkDelegation.builder()
-                .id("https://example.com/trustMark-1")
+                .trustMarkId("https://example.com/trustMark-1")
                 .issuer("https://example.com/trust-mark-owner")
                 .subject("https://example.com/ie1")
                 .issueTime(new Date())
@@ -203,7 +203,7 @@ class DefaultTrustMarkValidatorTest {
 
     this.performTrustMarkTest("Revoked Trust Mark",
         List.of(TrustMark.builder()
-            .id("https://example.com/trustMark-1")
+            .trustMarkId("https://example.com/trustMark-1")
             .issuer("https://example.com/ie2")
             .subject("https://example.com/op1")
             .issueTime(new Date())
@@ -224,7 +224,7 @@ class DefaultTrustMarkValidatorTest {
 
     this.performTrustMarkTest("Wrong trust mark signing key",
         List.of(TrustMark.builder()
-            .id("https://example.com/trustMark-1")
+            .trustMarkId("https://example.com/trustMark-1")
             .issuer("https://example.com/ie2")
             .subject("https://example.com/op1")
             .issueTime(new Date())
@@ -279,7 +279,7 @@ class DefaultTrustMarkValidatorTest {
     final List<TrustMark> validatedTrustMarks =
         trustMarkValidator.validateTrustMarks(trustMarks, subject, trustAnchorName);
     for (final String trustMarkId : expected) {
-      assertTrue(validatedTrustMarks.stream().anyMatch(trustMark -> trustMarkId.equals(trustMark.getId())));
+      assertTrue(validatedTrustMarks.stream().anyMatch(trustMark -> trustMarkId.equals(trustMark.getTrustMarkId())));
     }
     assertEquals(expected.size(), validatedTrustMarks.size());
     log.info("Found expected valid trust marks: {}\n", expected);

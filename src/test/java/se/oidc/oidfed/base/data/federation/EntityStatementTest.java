@@ -124,7 +124,7 @@ class EntityStatementTest {
                 TrustMarkClaim.builder()
                     .id("https://example.com/tm1")
                     .trustMark(TrustMark.builder()
-                        .id("https://example.com/tm1")
+                        .trustMarkId("https://example.com/tm1")
                         .subject("https://example.com/subject")
                         .issueTime(new Date())
                         .issuer("https://example.com/trust_mark_issuer")

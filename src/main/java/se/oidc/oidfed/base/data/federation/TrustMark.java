@@ -65,7 +65,7 @@ public class TrustMark {
     this.subject = claimsSet.getSubject();
     this.issueTime = claimsSet.getIssueTime();
     this.expirationTime = claimsSet.getExpirationTime();
-    this.id = (String) claimsSet.getClaim("id");
+    this.trustMarkId = (String) claimsSet.getClaim("id");
     this.logoUri = (String) claimsSet.getClaim("logo_uri");
     this.ref = (String) claimsSet.getClaim("ref");
     this.delegation = claimsSet.getClaim("delegation") != null
@@ -94,7 +94,7 @@ public class TrustMark {
   // Additional Trust Mark claims
 
   @Getter
-  private String id;
+  private String trustMarkId;
 
   @Getter
   private String logoUri;
@@ -149,8 +149,8 @@ public class TrustMark {
       return this;
     }
 
-    public TrustMarkBuilder id(final String id) {
-      this.trustMark.id = id;
+    public TrustMarkBuilder trustMarkId(final String trustMarkId) {
+      this.trustMark.trustMarkId = trustMarkId;
       return this;
     }
 
@@ -202,7 +202,7 @@ public class TrustMark {
           ? this.trustMark.getDelegation().serialize()
           : null;
 
-      this.addClaims("id", this.trustMark.id, claimsSetBuilder);
+      this.addClaims("trust_mark_id", this.trustMark.trustMarkId, claimsSetBuilder);
       this.addClaims("logo_uri", this.trustMark.logoUri, claimsSetBuilder);
       this.addClaims("ref", this.trustMark.ref, claimsSetBuilder);
       this.addClaims("delegation", delegationParam, claimsSetBuilder);
@@ -214,7 +214,7 @@ public class TrustMark {
       Objects.requireNonNull(claimsSet.getIssuer(), "Issuer must be present");
       Objects.requireNonNull(claimsSet.getSubject(), "Subject must be present");
       Objects.requireNonNull(claimsSet.getIssueTime(), "Issue time must be present");
-      Objects.requireNonNull(claimsSet.getClaim("id"), "Trust Mark ID must be present");
+      Objects.requireNonNull(claimsSet.getClaim("trust_mark_id"), "Trust Mark ID must be present");
 
       final SignedJWT jwt = new SignedJWT(
           new JWSHeader.Builder(algorithm)
