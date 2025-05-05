@@ -42,7 +42,7 @@ class TrustMarkTest {
   void builderTest() throws Exception {
 
     final TrustMark trustMark = TrustMark.builder()
-        .id("http://example.com/trust_mark_id")
+        .trustMarkId("http://example.com/trust_mark_id")
         .issuer("http://example.com/trust_mark_issuer")
         .subject("http://example.com/trust_mark_subject")
         .issueTime(new Date())
@@ -54,7 +54,7 @@ class TrustMarkTest {
         .delegation(TrustMarkDelegation.builder()
             .issuer("https://example.com/trust_mark_owner")
             .subject("http://example.com/trust_mark_issuer")
-            .id("http://example.com/trust_mark_id")
+            .trustMarkId("http://example.com/trust_mark_id")
             .issueTime(Date.from(Instant.now().minus(Duration.ofDays(10))))
             .expriationTime(Date.from(Instant.now().plus(Duration.ofDays(30))))
             .build(TestCredentials.p256JwtCredential, null).getSignedJWT())
@@ -78,7 +78,7 @@ class TrustMarkTest {
           "ref" : "http://example.com/information",
           "logo_uri" : "http://example.com/logo",
           "iss" : "http://example.com/trust_mark_issuer",
-          "id" : "http://example.com/trust_mark_id",
+          "trust_mark_id" : "http://example.com/trust_mark_id",
           "organization_name" : "Trust Mark issuer organization",
           "organization_nme#sv" : "Utfärdare av tillitsmärke AB"
         }""", payloadJson, false);
@@ -107,7 +107,7 @@ class TrustMarkTest {
         {
           "sub" : "http://example.com/trust_mark_issuer",
           "iss" : "https://example.com/trust_mark_owner",
-          "id" : "http://example.com/trust_mark_id"
+          "trust_mark_id" : "http://example.com/trust_mark_id"
         }
         """, delegationPayloadJson, false);
 

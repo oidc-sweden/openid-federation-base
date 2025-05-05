@@ -216,7 +216,7 @@ public class DefaultFederationChainValidator implements FederationChainValidator
           .orElse(new ArrayList<>());
       superiorStatementTrustMarks.stream()
           .filter(supTrustMark -> trustMarks.stream()
-              .noneMatch(subjTrustMark -> supTrustMark.getId().equals(subjTrustMark.getId())))
+              .noneMatch(subjTrustMark -> supTrustMark.getTrustMarkId().equals(subjTrustMark.getTrustMarkId())))
           .forEach(trustMarks::add);
     }
     return trustMarks;
@@ -275,12 +275,20 @@ public class DefaultFederationChainValidator implements FederationChainValidator
       // This is an Entity Configuration. Check authority hints
       final EntityStatement superiorEntityStatement = chain.get(chain.size() - 2);
       final List<String> authorityHints = leafEntityStatement.getAuthorityHints();
+      /*
+        The below code was removed to ignore any checks for authority hints.
+        The check that Entity Configuration hints to the Entity that issued its Entity Statement was removed
+        as this is not a requirement.
+        There is a requirement for EntityConfigurations to contain at least one authority hint. But this is only
+        needed to allow path discovery (bottom up), but it is not necessary to validate the chain, thus ignored here.
+      */
+      /*
       if (authorityHints == null || authorityHints.isEmpty()) {
         throw new ChainValidationException("Leaf Entity Configuration has no authority hints");
-      }
       if (!authorityHints.contains(superiorEntityStatement.getIssuer())) {
         throw new ChainValidationException("Superior entity is not in authority hints of Entity Configuration");
       }
+      */
       // Collect the metadata from leaf configuration, updated with superior statement metadata.
       return this.getCollectedMetadata(leafEntityStatement.getMetadata(),
           superiorEntityStatement.getMetadata());
