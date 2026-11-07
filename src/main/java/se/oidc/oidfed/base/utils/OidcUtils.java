@@ -16,11 +16,6 @@
 package se.oidc.oidfed.base.utils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
@@ -32,6 +27,10 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import se.oidc.oidfed.base.configuration.ValueType;
 import se.oidc.oidfed.base.process.metadata.PolicyTranslationException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.text.ParseException;
 import java.time.Instant;
@@ -48,18 +47,29 @@ import java.util.Optional;
  */
 public class OidcUtils {
 
-  public static final ObjectMapper OBJECT_MAPPER = getOidcObjectMapper();
+  public static final JsonMapper JSON_MAPPER = getOidcJsonMapper();
   public static final List<String> standardJwtClaims = List.of(
       "iss", "sub", "iat", "exp", "jti", "aud", "nbf"
   );
   public static final String URI_REGEXP = "^(http:\\/\\/|https:\\/\\/|urn:)[\\w\\W]*$";
 
-  public static ObjectMapper getOidcObjectMapper() {
-    final ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    return objectMapper;
+  /**
+   * Creates the {@link JsonMapper} used to read and write OpenID Federation data.
+   * <p>
+   * A Jackson 3 mapper is immutable, so all configuration is applied through the builder. Two defaults are set
+   * explicitly rather than left to the library: {@code WRITE_DATES_AS_TIMESTAMPS} was enabled in Jackson 2 and is
+   * disabled in Jackson 3, and {@code FAIL_ON_UNKNOWN_PROPERTIES} was enabled in Jackson 2 and is disabled in
+   * Jackson 3. Setting both keeps the behaviour of this mapper independent of the Jackson version.
+   *
+   * @return a {@link JsonMapper} that omits {@code null} valued properties, writes dates as numeric timestamps and
+   *     ignores unknown properties
+   */
+  public static JsonMapper getOidcJsonMapper() {
+    return JsonMapper.builder()
+        .changeDefaultPropertyInclusion(inclusion -> inclusion.withValueInclusion(JsonInclude.Include.NON_NULL))
+        .enable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .build();
   }
 
   /**
@@ -68,16 +78,14 @@ public class OidcUtils {
    * @param dataObject Data object containing parameters that are not part of the extension set
    * @param payload payload of the JWT from which the extension claims are collected
    * @return JSON object map containing the extension claims
-   * @throws JsonProcessingException JSON processing errors
    */
-  public static Map<String, Object> getExtensionProperties(final Map<String, Object> payload, Object dataObject)
-      throws JsonProcessingException {
+  public static Map<String, Object> getExtensionProperties(final Map<String, Object> payload, Object dataObject) {
     Objects.requireNonNull(payload, "Null payload is not allowed");
     dataObject = Optional.ofNullable(dataObject).orElse(new HashMap<>());
 
     final Map<String, Object> extensionObjectMap = new HashMap<>();
     final List<String> payloadClaims = new ArrayList<>(payload.keySet());
-    final Map<String, Object> dataObjectMap = OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsString(dataObject),
+    final Map<String, Object> dataObjectMap = JSON_MAPPER.readValue(JSON_MAPPER.writeValueAsString(dataObject),
         new TypeReference<>() {
         });
     for (final String claimName : payloadClaims) {
@@ -411,7 +419,7 @@ public class OidcUtils {
    * @return JSON object map
    */
   public static Map<String, Object> toJsonObject(final Object object) {
-    return OBJECT_MAPPER.convertValue(object, new TypeReference<>() {});
+    return JSON_MAPPER.convertValue(object, new TypeReference<>() {});
   }
 
   /**
@@ -423,6 +431,6 @@ public class OidcUtils {
    * @param <T> target class
    */
   public static <T> T readJsonObject(final Map<String, Object> jsonObject, final Class<T> targetClassType) {
-    return OBJECT_MAPPER.convertValue(jsonObject, targetClassType);
+    return JSON_MAPPER.convertValue(jsonObject, targetClassType);
   }
 }

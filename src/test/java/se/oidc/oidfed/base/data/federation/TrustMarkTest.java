@@ -63,11 +63,11 @@ class TrustMarkTest {
     final SignedJWT trustMarkSignedJWT = trustMark.getSignedJWT();
     final Map<String, Object> headerJsonObject = trustMarkSignedJWT.getHeader().toJSONObject();
     final String headerJson =
-        OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(headerJsonObject);
+        OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(headerJsonObject);
     log.info("Trust Mark header:\n{}", headerJson);
 
     final JWTClaimsSet claimsSet = trustMarkSignedJWT.getJWTClaimsSet();
-    final String payloadJson = OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+    final String payloadJson = OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter()
         .writeValueAsString(claimsSet.toJSONObject());
 
     log.info("Trust Mark payload:\n{}", payloadJson);
@@ -94,11 +94,11 @@ class TrustMarkTest {
     final SignedJWT parsedDelegation = SignedJWT.parse((String) claimsSet.getClaim("delegation"));
     final Map<String, Object> delegationHeaderJsonObject = parsedDelegation.getHeader().toJSONObject();
     final String delegationHeaderJson =
-        OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(delegationHeaderJsonObject);
+        OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(delegationHeaderJsonObject);
     log.info("Trust Mark Delegation header:\n{}", delegationHeaderJson);
 
     final JWTClaimsSet delegationClaimsSet = parsedDelegation.getJWTClaimsSet();
-    final String delegationPayloadJson = OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+    final String delegationPayloadJson = OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter()
         .writeValueAsString(delegationClaimsSet.toJSONObject());
 
     log.info("Trust Mark Delegation payload:\n{}", delegationPayloadJson);

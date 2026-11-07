@@ -85,12 +85,12 @@ class ResolveResponseTest {
 
     final Map<String, Object> headerJsonObject = signedParsedResponse.getHeader().toJSONObject();
     final String headerJson =
-        OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(headerJsonObject);
+        OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(headerJsonObject);
     log.info("Resolve response header:\n{}", headerJson);
     assertEquals(ResolveResponse.TYPE, signedParsedResponse.getHeader().getType());
 
     final JWTClaimsSet claimsSet = signedParsedResponse.getJWTClaimsSet();
-    final String payloadJson = OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+    final String payloadJson = OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter()
         .writeValueAsString(claimsSet.toJSONObject());
 
     log.info("Resolve response payload:\n{}", payloadJson);
@@ -101,7 +101,7 @@ class ResolveResponseTest {
     final JWTClaimsSet rrcs = signedResponse.getJWTClaimsSet();
     assertEquals(entityStatement.getSignedJWT().serialize(), ((List<?>) claimsSet.getClaim("trust_chain")).get(0));
     final Map<String, Object> trustMarkMap = (Map<String, Object>) ((List<?>) claimsSet.getClaim("trust_marks")).get(0);
-    final TrustMarkClaim trustMarkClaim = OidcUtils.OBJECT_MAPPER.convertValue(trustMarkMap, TrustMarkClaim.class);
+    final TrustMarkClaim trustMarkClaim = OidcUtils.JSON_MAPPER.convertValue(trustMarkMap, TrustMarkClaim.class);
     assertEquals(trustMark.getSignedJWT().serialize(), trustMarkClaim.getTrustMark());
     assertEquals(trustMark.getSignedJWT().serialize(), parsedResponse.getTrustMarks().get(0).getTrustMark());
     assertEquals(rrcs.getIssueTime(), claimsSet.getIssueTime());

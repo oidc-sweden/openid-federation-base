@@ -15,8 +15,6 @@
  */
 package se.oidc.oidfed.base.data.endpoints;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -29,6 +27,7 @@ import se.oidc.oidfed.base.data.federation.EntityStatement;
 import se.oidc.oidfed.base.data.federation.TrustMarkClaim;
 import se.oidc.oidfed.base.security.JWTSigningCredential;
 import se.oidc.oidfed.base.utils.OidcUtils;
+import tools.jackson.core.type.TypeReference;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
@@ -63,7 +62,7 @@ public class ResolveResponse {
     this.metadata = (Map<String, Object>) claimsSet.getClaim("metadata");
     this.trustMarks = claimsSet.getClaim("trust_marks") == null
         ? null
-        : OidcUtils.getOidcObjectMapper().convertValue(claimsSet.getClaim("trust_marks"), new TypeReference<>() {
+        : OidcUtils.getOidcJsonMapper().convertValue(claimsSet.getClaim("trust_marks"), new TypeReference<>() {
         });
     this.trustChain = claimsSet.getClaim("trust_chain") == null
         ? null
@@ -72,7 +71,7 @@ public class ResolveResponse {
               try {
                 return new EntityStatement(SignedJWT.parse(s));
               }
-              catch (final ParseException | JsonProcessingException e) {
+              catch (final ParseException e) {
                 throw new RuntimeException(e);
               }
             }).toList();
@@ -120,7 +119,7 @@ public class ResolveResponse {
     this.addClaim("metadata", this.getMetadata(), claimsSetBuilder);
     this.addClaim("trust_marks", this.trustMarks == null
             ? null
-            : OidcUtils.OBJECT_MAPPER.convertValue(this.trustMarks, List.class),
+            : OidcUtils.JSON_MAPPER.convertValue(this.trustMarks, List.class),
         claimsSetBuilder);
     this.addClaim("trust_chain", this.trustChain == null
             ? null

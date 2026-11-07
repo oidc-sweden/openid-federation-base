@@ -15,7 +15,6 @@
  */
 package se.oidc.oidfed.base.process.chain.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWKSet;
 import jakarta.annotation.Nonnull;
@@ -102,10 +101,10 @@ public class DefaultFederationChainValidator implements FederationChainValidator
         try {
           log.trace("Entity Statement issued by: {} - for: {}\n{}", entityStatement.getIssuer(),
               entityStatement.getSubject(),
-              OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+              OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter()
                   .writeValueAsString(entityStatement.getSignedJWT().getJWTClaimsSet().toJSONObject()));
         }
-        catch (final JsonProcessingException | ParseException e) {
+        catch (final ParseException e) {
           throw new RuntimeException(e);
         }
       }
@@ -127,14 +126,9 @@ public class DefaultFederationChainValidator implements FederationChainValidator
     final Map<String, EntityTypeMetadataPolicy> mergedMetadataPolicy = this.mergeMetadataPolicies(chain);
     if (log.isDebugEnabled()) {
       for (final String entityType : mergedMetadataPolicy.keySet()) {
-        try {
-          log.debug("Merged metadata policy for entity type: {}\n{}", entityType,
-              OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
-                  this.metadataPolicySerializer.toJsonObject(mergedMetadataPolicy.get(entityType))));
-        }
-        catch (final JsonProcessingException e) {
-          throw new RuntimeException(e);
-        }
+        log.debug("Merged metadata policy for entity type: {}\n{}", entityType,
+            OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
+                this.metadataPolicySerializer.toJsonObject(mergedMetadataPolicy.get(entityType))));
       }
     }
 

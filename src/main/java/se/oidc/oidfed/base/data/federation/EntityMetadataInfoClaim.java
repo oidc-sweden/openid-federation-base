@@ -18,19 +18,18 @@ package se.oidc.oidfed.base.data.federation;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import lombok.Getter;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -307,32 +306,30 @@ public class EntityMetadataInfoClaim {
 
   /**
    * Custom serializer for EntityMetadataInfoClaim objects.
-   * This class extends the JsonSerializer class to handle serialization of EntityMetadataInfoClaim objects.
+   * This class extends the ValueSerializer class to handle serialization of EntityMetadataInfoClaim objects.
    * It overrides the serialize method to write the claimObjects property of the EntityMetadataInfoClaim object to the JsonGenerator.
    */
-  public static class EntityMetadataInfoClaimSerializer extends JsonSerializer<EntityMetadataInfoClaim> {
+  public static class EntityMetadataInfoClaimSerializer extends ValueSerializer<EntityMetadataInfoClaim> {
 
     /**
      * Serializes the EntityMetadataInfoClaim object to JSON.
      *
      * @param value the EntityMetadataInfoClaim object to be serialized
      * @param gen the JsonGenerator used to write the JSON content
-     * @param serializers the SerializerProvider for serialization
-     * @throws IOException If an I/O error occurs while writing the JSON.
+     * @param ctxt the SerializationContext for serialization
      */
     @Override
-    public void serialize(EntityMetadataInfoClaim value, JsonGenerator gen, SerializerProvider serializers)
-      throws IOException {
-      gen.writeObject(value.getClaimObjects());
+    public void serialize(EntityMetadataInfoClaim value, JsonGenerator gen, SerializationContext ctxt) {
+      gen.writePOJO(value.getClaimObjects());
     }
   }
 
   /**
    * Custom JSON deserializer for EntityMetadataInfoClaim objects.
-   * This class extends JsonDeserializer and defines the deserialize method to convert JSON data
+   * This class extends ValueDeserializer and defines the deserialize method to convert JSON data
    * into an EntityMetadataInfoClaim object.
    */
-  public static class EntityMetadataInfoClaimDeserializer extends JsonDeserializer<EntityMetadataInfoClaim> {
+  public static class EntityMetadataInfoClaimDeserializer extends ValueDeserializer<EntityMetadataInfoClaim> {
 
     /**
      * Deserialize a JSON content into an EntityMetadataInfoClaim object.
@@ -340,11 +337,9 @@ public class EntityMetadataInfoClaim {
      * @param p JsonParser used to read JSON content.
      * @param ctxt DeserializationContext for deserialization configuration.
      * @return An EntityMetadataInfoClaim object populated with data from the JSON content.
-     * @throws IOException if an I/O error occurs during deserialization.
      */
     @Override
-    public EntityMetadataInfoClaim deserialize(JsonParser p, DeserializationContext ctxt)
-      throws IOException {
+    public EntityMetadataInfoClaim deserialize(JsonParser p, DeserializationContext ctxt) {
       Map<String, Map<String, Object>> claimObjects = p.readValueAs(new TypeReference<Map<String, Map<String, Object>>>() {});
       EntityMetadataInfoClaim entityMetadataInfoClaim = new EntityMetadataInfoClaim();
       entityMetadataInfoClaim.claimObjects = claimObjects;

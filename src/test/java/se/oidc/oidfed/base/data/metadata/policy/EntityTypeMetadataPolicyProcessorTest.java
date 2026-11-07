@@ -235,7 +235,7 @@ class EntityTypeMetadataPolicyProcessorTest {
         .build();
 
     log.info("Testing against policy:\n{}",
-        OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
+        OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
             serializer.toJsonObject(entityTypeMetadataPolicy)
         ));
 

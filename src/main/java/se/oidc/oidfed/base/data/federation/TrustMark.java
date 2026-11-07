@@ -15,7 +15,6 @@
  */
 package se.oidc.oidfed.base.data.federation;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -56,9 +55,8 @@ public class TrustMark {
    *
    * @param signedJWT the signed JWT
    * @throws ParseException for parsing errors
-   * @throws JsonProcessingException for JSON errors
    */
-  public TrustMark(final SignedJWT signedJWT) throws ParseException, JsonProcessingException {
+  public TrustMark(final SignedJWT signedJWT) throws ParseException {
     this.signedJWT = signedJWT;
     final JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
     this.issuer = claimsSet.getIssuer();
@@ -182,12 +180,11 @@ public class TrustMark {
      * @param signingCredential signing credentials for signing
      * @param permittedAlgorithms permitted algorithms and null if all algorithms are premitted
      * @return signed Trust Mark
-     * @throws JsonProcessingException error processing JSON data
      * @throws NoSuchAlgorithmException no such algorithm
      * @throws JOSEException JSON signing error
      */
     public TrustMark build(final JWTSigningCredential signingCredential, final List<JWSAlgorithm> permittedAlgorithms)
-        throws JsonProcessingException, NoSuchAlgorithmException, JOSEException {
+        throws NoSuchAlgorithmException, JOSEException {
 
       final JWSAlgorithm algorithm = signingCredential.getJwsAlgorithm(permittedAlgorithms);
 

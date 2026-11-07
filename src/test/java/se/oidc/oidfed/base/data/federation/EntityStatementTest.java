@@ -145,21 +145,21 @@ class EntityStatementTest {
 
     log.info("Entity Statement:\n{}", entityStatement.getSignedJWT().serialize());
     final JWSHeader entityStatementHeader = entityStatement.getSignedJWT().getHeader();
-    log.info("Header: \n{}", OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
+    log.info("Header: \n{}", OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
         entityStatementHeader.toJSONObject()));
     assertEquals("entity-statement+jwt", entityStatementHeader.getType().getType());
 
     final Map<String, Object> entityStatementPayloadJsonObject =
         entityStatement.getSignedJWT().getJWTClaimsSet().toJSONObject();
     final String entityStatementPayloadJson =
-        OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(entityStatementPayloadJsonObject);
+        OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(entityStatementPayloadJsonObject);
     log.info("Entity statement payload:\n{}", entityStatementPayloadJson);
 
     // Parse the statement back to Java
     final EntityStatement parsedEntityStatement = new EntityStatement(entityStatement.getSignedJWT());
     final Map<String, Object> opMetadataObject = parsedEntityStatement.getMetadata().getOpMetadataObject();
 
-    log.info("Parsed OP metadata:\n{}", OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(opMetadataObject));
+    log.info("Parsed OP metadata:\n{}", OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(opMetadataObject));
 
   }
 

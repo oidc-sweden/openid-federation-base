@@ -15,7 +15,6 @@
  */
 package se.oidc.oidfed.base.testdata;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.JOSEException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -104,7 +103,7 @@ public class TestEntityStatements {
         .trustMark(false);
   }
 
-  public static EsData.EsDataBuilder ie2_ie2_configuration() throws JsonProcessingException {
+  public static EsData.EsDataBuilder ie2_ie2_configuration() {
     return EsData.builder()
         .subjName("ie2")
         .issuerName("ie2")
@@ -129,7 +128,7 @@ public class TestEntityStatements {
         .trustMark(false);
   }
 
-  public static EsData.EsDataBuilder op1_conf() throws JsonProcessingException {
+  public static EsData.EsDataBuilder op1_conf() {
     return EsData.builder()
         .subjName("op1")
         .issuerName("op1")
@@ -142,7 +141,7 @@ public class TestEntityStatements {
             .build());
   }
 
-  public static EsData.EsDataBuilder ta1_op1_direct() throws JsonProcessingException {
+  public static EsData.EsDataBuilder ta1_op1_direct() {
     return EsData.builder()
         .subjName("op1")
         .issuerName("ta1")
@@ -155,7 +154,7 @@ public class TestEntityStatements {
             .build());
   }
 
-  public static EsData.EsDataBuilder ie2_rp1_metadata() throws JsonProcessingException {
+  public static EsData.EsDataBuilder ie2_rp1_metadata() {
     return EsData.builder()
         .subjName("rp1")
         .issuerName("ie2")
@@ -250,7 +249,7 @@ public class TestEntityStatements {
           .build(esData.getSigCredential(), null);
 
     }
-    catch (final NoSuchAlgorithmException | JOSEException | JsonProcessingException e) {
+    catch (final NoSuchAlgorithmException | JOSEException e) {
       throw new RuntimeException(e);
     }
   }

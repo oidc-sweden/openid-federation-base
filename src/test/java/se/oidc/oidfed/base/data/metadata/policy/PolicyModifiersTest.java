@@ -245,14 +245,14 @@ class PolicyModifiersTest {
 
     log.info("Entity Statement:\n{}", entityStatement.getSignedJWT().serialize());
     final JWSHeader entityStatementHeader = entityStatement.getSignedJWT().getHeader();
-    log.info("Header: \n{}", OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
+    log.info("Header: \n{}", OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
         entityStatementHeader.toJSONObject()));
     assertEquals("entity-statement+jwt", entityStatementHeader.getType().getType());
 
     final Map<String, Object> entityStatementPayloadJsonObject = entityStatement.getSignedJWT()
         .getJWTClaimsSet()
         .toJSONObject();
-    final String entityStatementPayloadJson = OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+    final String entityStatementPayloadJson = OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter()
         .writeValueAsString(entityStatementPayloadJsonObject);
     log.info("Entity statement payload:\n{}", entityStatementPayloadJson);
 
@@ -260,7 +260,7 @@ class PolicyModifiersTest {
     final EntityTypeMetadataPolicy entityTypeMetadataPolicy = skipSubordinatesSerializer.fromJsonObject(
         metadataPolicyClaim.getOpMetadataObject(), new ArrayList<>());
 
-    final String entityPolicyJsonString = OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+    final String entityPolicyJsonString = OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter()
         .writeValueAsString(skipSubordinatesSerializer.toJsonObject(entityTypeMetadataPolicy));
     log.info("OP Entity metadata policy:\n{}", entityPolicyJsonString);
   }
@@ -286,7 +286,7 @@ class PolicyModifiersTest {
           .addMetadataParameterPolicy(metadataParameterPolicy)
           .build();
 
-      final String jsonString = OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+      final String jsonString = OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter()
           .writeValueAsString(skipSubordinatesSerializer.toJsonObject(entityTypeMetadataPolicy));
       log.info("Policy modifiers JSON:\n{}", jsonString);
     }

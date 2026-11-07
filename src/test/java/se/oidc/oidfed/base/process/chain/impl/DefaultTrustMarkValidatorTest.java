@@ -302,7 +302,7 @@ class DefaultTrustMarkValidatorTest {
 
   private void logEntityStatementInfo(final EntityStatement entityStatement) throws Exception {
     log.info("Entity Statement issued by: {} - for: {}\n{}", entityStatement.getIssuer(), entityStatement.getSubject(),
-        OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+        OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter()
             .writeValueAsString(entityStatement.getSignedJWT().getJWTClaimsSet().toJSONObject()));
   }
 

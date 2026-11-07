@@ -234,20 +234,20 @@ class DefaultFederationChainValidatorTest {
 
     final ChainValidationResult validationResult = federationChainValidator.validate(chain);
     log.info("Target entity declared metadata:\n{}",
-        OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+        OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter()
             .writeValueAsString(validationResult.getDeclaredMetadata()));
-    final String processedMetadata = OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+    final String processedMetadata = OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter()
         .writeValueAsString(validationResult.getPolicyProcessedMetadata());
     log.info("Target entity policy processed metadata:\n{}",
         processedMetadata);
 
-    final String expectedJson = OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(expected);
+    final String expectedJson = OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(expected);
     JSONAssert.assertEquals(expectedJson, processedMetadata, false);
   }
 
   private void logEntityStatementInfo(final EntityStatement entityStatement) throws Exception {
     log.info("Entity Statement issued by: {} - for: {}\n{}", entityStatement.getIssuer(), entityStatement.getSubject(),
-        OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+        OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter()
             .writeValueAsString(entityStatement.getSignedJWT().getJWTClaimsSet().toJSONObject()));
   }
 

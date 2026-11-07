@@ -288,18 +288,18 @@ public class PolicyMergeTest {
       throws Exception {
     log.info(message);
     final EntityTypeMetadataPolicy superiorPolicy = this.getEtMetadataPolicy(superior);
-    log.info("Superior policy: \n{}", OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
+    log.info("Superior policy: \n{}", OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
         skipSubordinatesSerializer.toJsonObject(superiorPolicy)
     ));
     final EntityTypeMetadataPolicy subordinatePolicy = this.getEtMetadataPolicy(subordinate);
     log.info("Subordinate policy: \n{}", subordinatePolicy == null
         ? null
-        : OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
+        : OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
             skipSubordinatesSerializer.toJsonObject(subordinatePolicy))
     );
 
     final EntityTypeMetadataPolicy mergedPolicy = superiorPolicy.mergeWithSubordinate(subordinatePolicy);
-    log.info("Merged policy: \n{}", OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
+    log.info("Merged policy: \n{}", OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(
         skipSubordinatesSerializer.toJsonObject(mergedPolicy)
     ));
 

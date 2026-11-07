@@ -74,11 +74,11 @@ class ClientAssertionTest {
     log.info("Client assertion:\n{}", clientAssertion.getClientAssertionJwt().serialize());
 
     log.info("Client assertion header:\n{}",
-        OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+        OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter()
             .writeValueAsString(clientAssertion.getClientAssertionJwt().getHeader().toJSONObject()));
 
     log.info("Client assertion payload:\n{}",
-        OidcUtils.OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+        OidcUtils.JSON_MAPPER.writerWithDefaultPrettyPrinter()
             .writeValueAsString(clientAssertion.getClientAssertionJwt().getPayload().toJSONObject()));
   }
 

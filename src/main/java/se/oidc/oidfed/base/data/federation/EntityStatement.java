@@ -15,9 +15,6 @@
  */
 package se.oidc.oidfed.base.data.federation;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -29,6 +26,8 @@ import lombok.Getter;
 import lombok.Setter;
 import se.oidc.oidfed.base.security.JWTSigningCredential;
 import se.oidc.oidfed.base.utils.OidcUtils;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
@@ -53,24 +52,24 @@ public class EntityStatement {
   private EntityStatement() {
   }
 
-  public EntityStatement(final SignedJWT signedJWT) throws ParseException, JsonProcessingException {
+  public EntityStatement(final SignedJWT signedJWT) throws ParseException {
     this.signedJWT = signedJWT;
     final JWTClaimsSet claimsSet = signedJWT.getJWTClaimsSet();
     this.issuer = claimsSet.getIssuer();
     this.subject = claimsSet.getSubject();
     this.issueTime = claimsSet.getIssueTime();
     this.expirationTime = claimsSet.getExpirationTime();
-    this.objectMapper = OidcUtils.OBJECT_MAPPER;
+    this.jsonMapper = OidcUtils.JSON_MAPPER;
     final Map<String, Object> payloadJsonObject = signedJWT.getPayload().toJSONObject();
-    this.definedParams = this.objectMapper.readValue(
-        this.objectMapper.writeValueAsString(payloadJsonObject),
+    this.definedParams = this.jsonMapper.readValue(
+        this.jsonMapper.writeValueAsString(payloadJsonObject),
         EntityStatementDefinedParams.class
     );
     this.extensions = OidcUtils.getExtensionProperties(payloadJsonObject, this.definedParams);
   }
 
   @Setter
-  private ObjectMapper objectMapper;
+  private JsonMapper jsonMapper;
 
   @Getter
   private SignedJWT signedJWT;
@@ -145,11 +144,11 @@ public class EntityStatement {
   }
 
   public static EntityStatementBuilder builder() {
-    return new EntityStatementBuilder(OidcUtils.OBJECT_MAPPER);
+    return new EntityStatementBuilder(OidcUtils.JSON_MAPPER);
   }
 
-  public static EntityStatementBuilder builder(final ObjectMapper objectMapper) {
-    return new EntityStatementBuilder(objectMapper);
+  public static EntityStatementBuilder builder(final JsonMapper jsonMapper) {
+    return new EntityStatementBuilder(jsonMapper);
   }
 
   /**
@@ -160,9 +159,9 @@ public class EntityStatement {
     private static final SecureRandom rng = new SecureRandom();
     private final EntityStatement entityStatement;
 
-    private EntityStatementBuilder(final ObjectMapper objectMapper) {
+    private EntityStatementBuilder(final JsonMapper jsonMapper) {
       this.entityStatement = new EntityStatement();
-      this.entityStatement.setObjectMapper(objectMapper);
+      this.entityStatement.setJsonMapper(jsonMapper);
     }
 
     public EntityStatementBuilder issuer(final String issuer) {
@@ -197,14 +196,14 @@ public class EntityStatement {
 
     public EntityStatement build(final JWTSigningCredential signingCredential,
         final List<JWSAlgorithm> permittedAlgorithms)
-        throws JsonProcessingException, NoSuchAlgorithmException, JOSEException {
+        throws NoSuchAlgorithmException, JOSEException {
 
       if (this.entityStatement.definedParams == null) {
         this.entityStatement.definedParams = EntityStatementDefinedParams.builder().build();
       }
 
-      final Map<String, Object> definedParamsObject = this.entityStatement.objectMapper.readValue(
-          this.entityStatement.objectMapper.writeValueAsString(this.entityStatement.definedParams),
+      final Map<String, Object> definedParamsObject = this.entityStatement.jsonMapper.readValue(
+          this.entityStatement.jsonMapper.writeValueAsString(this.entityStatement.definedParams),
           new TypeReference<>() {
           }
       );
