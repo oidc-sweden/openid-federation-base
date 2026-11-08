@@ -51,6 +51,12 @@ public class EntityStatement {
   public static final String EC_LOCATION_CLAIM_NAME = "ec_location";
 
   /**
+   * The name of the claim holding the registration policies that were applied when registering the subject, defined
+   * by OpenID Federation Registration Policy 1.0.
+   */
+  public static final String REGISTRATION_POLICY_CLAIM_NAME = "registration_policy";
+
+  /**
    * Private constructor for the builder
    */
   private EntityStatement() {
@@ -145,6 +151,10 @@ public class EntityStatement {
 
   public String getEcLocation() {
     return this.definedParams.getEcLocation();
+  }
+
+  public List<String> getRegistrationPolicy() {
+    return this.definedParams.getRegistrationPolicy();
   }
 
   public static EntityStatementBuilder builder() {

@@ -78,6 +78,13 @@ public class EntityStatementDefinedParams {
   @JsonProperty("ec_location")
   private String ecLocation;
 
+  /**
+   * Identifiers of the registration policies the issuer applied when registering the subject, defined by Section 2
+   * of OpenID Federation Registration Policy 1.0. Must not be included in an Entity Configuration.
+   */
+  @JsonProperty("registration_policy")
+  private List<String> registrationPolicy;
+
   public static EntityStatementDefinedParamsBuilder builder() {
     return new EntityStatementDefinedParamsBuilder();
   }
@@ -175,6 +182,18 @@ public class EntityStatementDefinedParams {
       if (critical) {
         this.addCriticalClaim(EntityStatement.EC_LOCATION_CLAIM_NAME);
       }
+      return this;
+    }
+
+    /**
+     * Sets the {@code registration_policy} claim, the identifiers of the registration policies that were applied when
+     * registering the subject.
+     *
+     * @param registrationPolicy registration policy identifiers
+     * @return this builder
+     */
+    public EntityStatementDefinedParamsBuilder registrationPolicy(final List<String> registrationPolicy) {
+      this.esDefinedParams.registrationPolicy = registrationPolicy;
       return this;
     }
 

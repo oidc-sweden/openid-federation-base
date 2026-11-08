@@ -27,6 +27,7 @@ import se.oidc.oidfed.base.data.federation.ConstraintsClaim;
 import se.oidc.oidfed.base.data.federation.EntityMetadataInfoClaim;
 import se.oidc.oidfed.base.data.federation.EntityStatement;
 import se.oidc.oidfed.base.data.federation.NamingConstraints;
+import se.oidc.oidfed.base.data.federation.RegistrationPolicyConstraint;
 import se.oidc.oidfed.base.process.chain.ChainValidationException;
 import se.oidc.oidfed.base.process.chain.ChainValidationResult;
 import se.oidc.oidfed.base.process.chain.FederationChainValidator;
@@ -383,6 +384,205 @@ class DefaultFederationChainValidatorTest {
         TestEntityStatements.ie1_ie2_statement()
             .policy(failingOpPolicy),
         TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf())));
+  }
+
+  /**
+   * Registration policy constraints, defined by Section 3 of OpenID Federation Registration Policy 1.0. The
+   * constraint applies to every Subordinate Statement below the statement that declares it, and not to the Entity
+   * Configuration that terminates the chain.
+   */
+  @Test
+  void testRegistrationPolicyConstraints() throws Exception {
+
+    final String defaultPolicy = "https://example.com/policy/default";
+    final String opPolicy = "https://example.com/policy/op";
+    final String rpPolicy = "https://example.com/policy/rp";
+
+    // A rule without entity_types applies to every Subordinate Statement, so both the statement for the Intermediate
+    // and the statement for the leaf must declare the policy
+    final ChainValidationResult result = this.validateChain(List.of(
+        TestEntityStatements.ta1_conf()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .registrationPolicy(List.of(RegistrationPolicyConstraint.builder()
+                    .policy(List.of(defaultPolicy))
+                    .build()))
+                .build()),
+        TestEntityStatements.ta1_ie1_statement().registrationPolicy(List.of(defaultPolicy)),
+        TestEntityStatements.ie1_ie2_statement().registrationPolicy(List.of(defaultPolicy)),
+        TestEntityStatements.ie2_op1().registrationPolicy(List.of(defaultPolicy)),
+        TestEntityStatements.op1_conf()));
+    assertNotNull(result.getDeclaredMetadata().getOpMetadataObject());
+
+    // The same chain where one Subordinate Statement in the middle lacks the policy
+    assertThrows(ChainValidationException.class, () -> this.validateChain(List.of(
+        TestEntityStatements.ta1_conf()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .registrationPolicy(List.of(RegistrationPolicyConstraint.builder()
+                    .policy(List.of(defaultPolicy))
+                    .build()))
+                .build()),
+        TestEntityStatements.ta1_ie1_statement().registrationPolicy(List.of(defaultPolicy)),
+        TestEntityStatements.ie1_ie2_statement(),
+        TestEntityStatements.ie2_op1().registrationPolicy(List.of(defaultPolicy)),
+        TestEntityStatements.op1_conf())));
+
+    // Declaring any one of the listed policies satisfies a rule
+    assertNotNull(this.validateChain(List.of(
+        TestEntityStatements.ta1_conf()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .registrationPolicy(List.of(RegistrationPolicyConstraint.builder()
+                    .policy(List.of(defaultPolicy, opPolicy))
+                    .build()))
+                .build()),
+        TestEntityStatements.ta1_ie1_statement().registrationPolicy(List.of(opPolicy)),
+        TestEntityStatements.ie1_ie2_statement().registrationPolicy(List.of(defaultPolicy)),
+        TestEntityStatements.ie2_op1().registrationPolicy(List.of(opPolicy, "https://example.com/policy/other")),
+        TestEntityStatements.op1_conf())));
+
+    // A rule scoped to openid_provider only applies to the leaf, since every Entity above it is a
+    // federation_entity. The statements for the Intermediates need not declare the policy.
+    assertNotNull(this.validateChain(List.of(
+        TestEntityStatements.ta1_conf()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .registrationPolicy(List.of(RegistrationPolicyConstraint.builder()
+                    .entityTypes(List.of("openid_provider"))
+                    .policy(List.of(opPolicy))
+                    .build()))
+                .build()),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement(),
+        TestEntityStatements.ie2_op1().registrationPolicy(List.of(opPolicy)),
+        TestEntityStatements.op1_conf())));
+
+    // The same rule fails when the statement for the leaf does not declare the policy
+    assertThrows(ChainValidationException.class, () -> this.validateChain(List.of(
+        TestEntityStatements.ta1_conf()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .registrationPolicy(List.of(RegistrationPolicyConstraint.builder()
+                    .entityTypes(List.of("openid_provider"))
+                    .policy(List.of(opPolicy))
+                    .build()))
+                .build()),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement(),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf())));
+
+    // A rule scoped to an Entity Type the leaf does not have is not applicable to any statement of the chain
+    assertNotNull(this.validateChain(List.of(
+        TestEntityStatements.ta1_conf()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .registrationPolicy(List.of(RegistrationPolicyConstraint.builder()
+                    .entityTypes(List.of("openid_relying_party"))
+                    .policy(List.of(rpPolicy))
+                    .build()))
+                .build()),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement(),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf())));
+
+    // A rule scoped to federation_entity applies to the Intermediates but not to the leaf
+    assertThrows(ChainValidationException.class, () -> this.validateChain(List.of(
+        TestEntityStatements.ta1_conf()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .registrationPolicy(List.of(RegistrationPolicyConstraint.builder()
+                    .entityTypes(List.of("federation_entity"))
+                    .policy(List.of(defaultPolicy))
+                    .build()))
+                .build()),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement(),
+        TestEntityStatements.ie2_op1().registrationPolicy(List.of(defaultPolicy)),
+        TestEntityStatements.op1_conf())));
+
+    // A constraint declared by an Intermediate only reaches the statements below it, so the statement that the
+    // Trust Anchor issued for that Intermediate is not required to declare the policy
+    assertNotNull(this.validateChain(List.of(
+        TestEntityStatements.ta1_conf(),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .registrationPolicy(List.of(RegistrationPolicyConstraint.builder()
+                    .policy(List.of(defaultPolicy))
+                    .build()))
+                .build()),
+        TestEntityStatements.ie2_op1().registrationPolicy(List.of(defaultPolicy)),
+        TestEntityStatements.op1_conf())));
+  }
+
+  /**
+   * The Entity Types of the leaf are the ones that remain after the allowed_entity_types constraints have been
+   * applied, so a registration policy rule scoped to a removed Entity Type is not applicable.
+   */
+  @Test
+  void testRegistrationPolicyUsesFilteredEntityTypes() throws Exception {
+
+    final String opPolicy = "https://example.com/policy/op";
+
+    // openid_provider is removed by the allowed_entity_types constraint, so the openid_provider scoped registration
+    // policy rule no longer applies and the chain is valid without the policy being declared
+    assertNotNull(this.validateChain(List.of(
+        TestEntityStatements.ta1_conf()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .allowedEntityTypes(List.of("openid_relying_party"))
+                .registrationPolicy(List.of(RegistrationPolicyConstraint.builder()
+                    .entityTypes(List.of("openid_provider"))
+                    .policy(List.of(opPolicy))
+                    .build()))
+                .build()),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement(),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf())));
+
+    // Without the allowed_entity_types constraint the Entity Type survives and the same rule fails
+    assertThrows(ChainValidationException.class, () -> this.validateChain(List.of(
+        TestEntityStatements.ta1_conf()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .registrationPolicy(List.of(RegistrationPolicyConstraint.builder()
+                    .entityTypes(List.of("openid_provider"))
+                    .policy(List.of(opPolicy))
+                    .build()))
+                .build()),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement(),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf())));
+  }
+
+  /**
+   * A malformed registration policy constraint invalidates the chain.
+   */
+  @Test
+  void testMalformedRegistrationPolicyConstraint() {
+
+    // The policy array is required and must not be empty
+    assertThrows(ChainValidationException.class, () -> this.validateChain(List.of(
+        TestEntityStatements.ta1_conf()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .registrationPolicy(List.of(RegistrationPolicyConstraint.builder()
+                    .policy(List.of())
+                    .build()))
+                .build()),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement(),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf())));
+
+    // The entity_types array must not be empty when present
+    assertThrows(ChainValidationException.class, () -> this.validateChain(List.of(
+        TestEntityStatements.ta1_conf()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .registrationPolicy(List.of(RegistrationPolicyConstraint.builder()
+                    .entityTypes(List.of())
+                    .policy(List.of("https://example.com/policy/default"))
+                    .build()))
+                .build()),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement(),
+        TestEntityStatements.ie2_op1().registrationPolicy(List.of("https://example.com/policy/default")),
         TestEntityStatements.op1_conf())));
   }
 

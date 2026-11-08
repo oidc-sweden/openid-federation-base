@@ -47,4 +47,12 @@ public class ConstraintsClaim {
   @JsonProperty("allowed_entity_types")
   private List<String> allowedEntityTypes;
 
+  /**
+   * Registration policy constraint rules, defined by Section 3 of OpenID Federation Registration Policy 1.0. All
+   * applicable rules must be satisfied by every Subordinate Statement below the statement that declares the
+   * constraint.
+   */
+  @JsonProperty("registration_policy")
+  private List<RegistrationPolicyConstraint> registrationPolicy;
+
 }

@@ -23,6 +23,7 @@ import se.oidc.oidfed.base.data.federation.ConstraintsClaim;
 import se.oidc.oidfed.base.data.federation.EntityMetadataInfoClaim;
 import se.oidc.oidfed.base.data.federation.EntityStatement;
 import se.oidc.oidfed.base.data.federation.NamingConstraints;
+import se.oidc.oidfed.base.data.federation.RegistrationPolicyConstraint;
 import se.oidc.oidfed.base.data.federation.TrustMarkClaim;
 import se.oidc.oidfed.base.data.metadata.policy.EntityTypeMetadataPolicy;
 import se.oidc.oidfed.base.data.metadata.policy.MetadataParameterPolicy;
@@ -75,7 +76,7 @@ public class DefaultFederationChainValidator implements FederationChainValidator
   private final MetadataPolicyProcessor metadataPolicyProcessor;
 
   private final List<String> supportedCriticalClaims =
-      List.of(EntityStatement.EC_LOCATION_CLAIM_NAME);
+      List.of(EntityStatement.EC_LOCATION_CLAIM_NAME, EntityStatement.REGISTRATION_POLICY_CLAIM_NAME);
 
   /**
    * Constructor
@@ -148,6 +149,11 @@ public class DefaultFederationChainValidator implements FederationChainValidator
     // superior has been applied and before metadata policies are applied, as required by Section 6.2.3.
     final EntityMetadataInfoClaim targetEntityMetadata =
         this.removeDisallowedEntityTypes(collectedEntityMetadata, chain);
+
+    // Check the registration policy constraints of the chain. This is done here and not together with the other
+    // constraint checks, since the Entity Types of the leaf Entity are the ones that remain after the
+    // allowed_entity_types constraints have been applied.
+    this.checkRegistrationPolicyConstraints(chain, targetEntityMetadata);
 
     // Process metadata against policy
     final EntityMetadataInfoClaim policyProcessedMetadata =
@@ -291,6 +297,96 @@ public class DefaultFederationChainValidator implements FederationChainValidator
     removedEntityTypes.forEach(metadataJsonObject::remove);
     log.debug("Removed metadata of Entity Types not allowed by the constraints of the chain: {}", removedEntityTypes);
     return OidcUtils.readJsonObject(metadataJsonObject, EntityMetadataInfoClaim.class);
+  }
+
+  /**
+   * Checks the registration policy constraints of the chain, defined by Section 3 of OpenID Federation Registration
+   * Policy 1.0.
+   * <p>
+   * A constraint applies to every Subordinate Statement that appears below the statement declaring it, and does not
+   * apply to the Entity Configuration that terminates the chain. The Entity Type of the subject of each of those
+   * Subordinate Statements is {@code federation_entity}, since every Entity above the leaf is a Trust Anchor or an
+   * Intermediate Entity. The exception is the subject of the last Subordinate Statement, which is the leaf Entity
+   * that published the terminating Entity Configuration, and whose Entity Types are the ones declared in the
+   * resolved metadata after the {@code allowed_entity_types} constraints have been applied.
+   *
+   * @param chain the ordered chain, Trust Anchor first, terminated by the Entity Configuration of the leaf Entity
+   * @param leafMetadata the metadata of the leaf Entity, after removal of disallowed Entity Types
+   * @throws ChainValidationException if a constraint is malformed or is not satisfied
+   */
+  private void checkRegistrationPolicyConstraints(final List<EntityStatement> chain,
+      final EntityMetadataInfoClaim leafMetadata) throws ChainValidationException {
+
+    // The last statement of the chain is the Entity Configuration of the leaf Entity. The Subordinate Statements are
+    // all statements between the Trust Anchor Entity Configuration and that Entity Configuration, and the subject of
+    // the last of them is the leaf Entity.
+    final int leafStatementIndex = chain.size() - 2;
+    final List<String> leafEntityTypes = leafMetadata == null
+        ? List.of()
+        : List.copyOf(OidcUtils.toJsonObject(leafMetadata).keySet());
+
+    for (int i = 1; i < chain.size(); i++) {
+      final ConstraintsClaim constraints = chain.get(i - 1).getConstraints();
+      if (constraints == null || constraints.getRegistrationPolicy() == null) {
+        continue;
+      }
+      for (final RegistrationPolicyConstraint rule : constraints.getRegistrationPolicy()) {
+        this.verifyRegistrationPolicyRuleSyntax(rule);
+        // Apply the rule to every Subordinate Statement below the statement that declared it
+        for (int subordinate = i; subordinate <= leafStatementIndex; subordinate++) {
+          final EntityStatement statement = chain.get(subordinate);
+          final List<String> subjectEntityTypes = subordinate == leafStatementIndex
+              ? leafEntityTypes
+              : List.of(EntityMetadataInfoClaim.FEDERATION_ENTITY);
+          if (!this.isRegistrationPolicyRuleApplicable(rule, subjectEntityTypes)) {
+            continue;
+          }
+          final List<String> declaredPolicies =
+              Optional.ofNullable(statement.getRegistrationPolicy()).orElse(List.of());
+          if (declaredPolicies.stream().noneMatch(rule.getPolicy()::contains)) {
+            throw new ChainValidationException(
+                "Registration policy constraints violation. The Entity Statement issued by %s for %s declares none "
+                    .formatted(statement.getIssuer(), statement.getSubject())
+                    + "of the required registration policies: " + rule.getPolicy());
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Determines whether a registration policy constraint rule applies to a subject with the given Entity Types. A
+   * rule without Entity Types applies to every Entity Type.
+   *
+   * @param rule the rule
+   * @param subjectEntityTypes the Entity Types of the subject of a Subordinate Statement
+   * @return true if the rule applies
+   */
+  private boolean isRegistrationPolicyRuleApplicable(final RegistrationPolicyConstraint rule,
+      final List<String> subjectEntityTypes) {
+    if (rule.getEntityTypes() == null) {
+      return true;
+    }
+    return subjectEntityTypes.stream().anyMatch(rule.getEntityTypes()::contains);
+  }
+
+  /**
+   * Verifies that a registration policy constraint rule is syntactically correct. The policy array is required and
+   * must not be empty, and the Entity Type array must not be empty when present.
+   *
+   * @param rule the rule to verify
+   * @throws ChainValidationException if the rule is malformed
+   */
+  private void verifyRegistrationPolicyRuleSyntax(final RegistrationPolicyConstraint rule)
+      throws ChainValidationException {
+    if (rule.getPolicy() == null || rule.getPolicy().isEmpty()) {
+      throw new ChainValidationException(
+          "Malformed registration policy constraint. The policy array is required and must not be empty");
+    }
+    if (rule.getEntityTypes() != null && rule.getEntityTypes().isEmpty()) {
+      throw new ChainValidationException(
+          "Malformed registration policy constraint. The entity_types array must not be empty when present");
+    }
   }
 
   private EntityMetadataInfoClaim applyMetadataPolicy(final EntityMetadataInfoClaim targetMetadata,

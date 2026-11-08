@@ -195,7 +195,8 @@ public class TestEntityStatements {
           .authorityHints(esData.getAuthorityHints())
           .metadata(esData.getMetadata())
           .metadataPolicy(esData.getPolicy())
-          .constraints(esData.getConstraintsClaim());
+          .constraints(esData.getConstraintsClaim())
+          .registrationPolicy(esData.getRegistrationPolicy());
 
       if (esData.getCriticalClaims() != null) {
         esData.getCriticalClaims().forEach(esParamsBuilder::addCriticalClaim);
@@ -268,6 +269,7 @@ public class TestEntityStatements {
     private EntityMetadataInfoClaim metadata;
     private EntityMetadataInfoClaim policy;
     private ConstraintsClaim constraintsClaim;
+    private List<String> registrationPolicy;
     private List<String> criticalClaims;
     private List<String> policyCriticalClaims;
     private boolean trustMark;
