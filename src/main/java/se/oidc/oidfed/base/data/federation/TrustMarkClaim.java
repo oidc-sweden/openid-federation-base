@@ -32,8 +32,12 @@ import lombok.NoArgsConstructor;
 @Builder
 public class TrustMarkClaim {
 
-  @JsonProperty("trust_mark_id")
-  private String trustMarkId;
+  /**
+   * The Trust Mark type identifier. Serialized as {@code trust_mark_type}, which is what OpenID Federation 1.0 calls
+   * the identifier of the kind of Trust Mark, as opposed to an identifier of the individually issued Trust Mark.
+   */
+  @JsonProperty("trust_mark_type")
+  private String trustMarkType;
 
   @JsonProperty("trust_mark")
   private String trustMark;

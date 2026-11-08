@@ -208,7 +208,7 @@ public class TestEntityStatements {
             .trustMarks(List.of(
                 TrustMarkClaim.builder()
                     .trustMark(TrustMark.builder()
-                        .trustMarkId("https://example.com/tm1")
+                        .trustMarkType("https://example.com/tm1")
                         .subject("https://example.com/subject")
                         .issueTime(new Date())
                         .issuer("https://example.com/trust_mark_issuer")
@@ -230,7 +230,7 @@ public class TestEntityStatements {
       }
 
       if (esData.noSubjectDataStorage) {
-        esParamsBuilder.subjectEntityConfigurationLocation("https://example.com/subject-entity-configuration", true);
+        esParamsBuilder.ecLocation("https://example.com/subject-entity-configuration", true);
       }
 
       if (esData.getAuthorityHints() != null) {

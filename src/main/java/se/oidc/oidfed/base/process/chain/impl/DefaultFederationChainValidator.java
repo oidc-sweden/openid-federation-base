@@ -49,7 +49,7 @@ import java.util.Optional;
  * Entity Statement chain validation implementation
  *
  * <p>
- * The definition of constraints is ambiguous. This implementation make two interpretations. allowed_leaf_entity_types
+ * The definition of constraints is ambiguous. This implementation make two interpretations. allowed_entity_types
  * will ignore any presence of "federation_entity" as this type can be used by any role. Naming constraints will be
  * applied as URL prefix. Anything that matches the beginning of this URL prefix, matches the constraint (permitted and
  * excluded).
@@ -67,7 +67,7 @@ public class DefaultFederationChainValidator implements FederationChainValidator
   private final MetadataPolicyProcessor metadataPolicyProcessor;
 
   private final List<String> supportedCriticalClaims =
-      List.of(EntityStatement.SUBJECT_ENTITY_CONFIGURATION_LOCATION_CLAIM_NAME);
+      List.of(EntityStatement.EC_LOCATION_CLAIM_NAME);
 
   /**
    * Constructor
@@ -210,7 +210,7 @@ public class DefaultFederationChainValidator implements FederationChainValidator
           .orElse(new ArrayList<>());
       superiorStatementTrustMarks.stream()
           .filter(supTrustMark -> trustMarks.stream()
-              .noneMatch(subjTrustMark -> supTrustMark.getTrustMarkId().equals(subjTrustMark.getTrustMarkId())))
+              .noneMatch(subjTrustMark -> supTrustMark.getTrustMarkType().equals(subjTrustMark.getTrustMarkType())))
           .forEach(trustMarks::add);
     }
     return trustMarks;
@@ -291,14 +291,14 @@ public class DefaultFederationChainValidator implements FederationChainValidator
       log.debug("Leaf statement is an Entity Statement issued by a superior entity");
       // The leaf statement is an Entity Statement and not Entity Configuration.
       // Check that leaf entity statement subject_data_publication claim has declared "none" as the publication type
-      final String subjectDataPublication = leafEntityStatement.getSubjectEntityConfigurationLocation();
+      final String subjectDataPublication = leafEntityStatement.getEcLocation();
       if (subjectDataPublication == null) {
         throw new ChainValidationException(
-            "Chain ends with Entity Statement without declaring subject_entity_configuration_location");
+            "Chain ends with Entity Statement without declaring ec_location");
       }
       else {
         throw new ChainValidationException(
-            "Chain ends with Entity Statement despite having a subject_entity_configuration_location claim. Resolve this claim first and amend the chain");
+            "Chain ends with Entity Statement despite having an ec_location claim. Resolve this claim first and amend the chain");
       }
     }
   }
@@ -443,7 +443,7 @@ public class DefaultFederationChainValidator implements FederationChainValidator
 
     // Extract constraints components
     final Integer maxPathLength = constraints.getMaxPathLength();
-    final List<String> allowedLeafEntityTypes = constraints.getAllowedLeafEntityTypes();
+    final List<String> allowedEntityTypes = constraints.getAllowedEntityTypes();
     final NamingConstraints namingConstraints = Optional.ofNullable(constraints.getNamingConstraints())
         .orElse(new NamingConstraints());
     final List<String> excluded = namingConstraints.getExcluded();
@@ -492,8 +492,8 @@ public class DefaultFederationChainValidator implements FederationChainValidator
     }
 
     // Check leaf entity types
-    if (allowedLeafEntityTypes != null && !allowedLeafEntityTypes.isEmpty()) {
-      if (!new HashSet<>(allowedLeafEntityTypes).containsAll(leafEntityTypes)) {
+    if (allowedEntityTypes != null && !allowedEntityTypes.isEmpty()) {
+      if (!new HashSet<>(allowedEntityTypes).containsAll(leafEntityTypes)) {
         throw new ChainValidationException("Leaf entity type constraints violation");
       }
     }

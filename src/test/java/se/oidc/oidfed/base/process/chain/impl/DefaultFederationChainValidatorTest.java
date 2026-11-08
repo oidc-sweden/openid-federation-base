@@ -87,7 +87,7 @@ class DefaultFederationChainValidatorTest {
                         .excluded(List.of("http://excluded.example.com"))
                         .permitted(List.of("https://example.com", "http://example.com"))
                         .build())
-                    .allowedLeafEntityTypes(List.of("openid_relying_party", "openid_provider"))
+                    .allowedEntityTypes(List.of("openid_relying_party", "openid_provider"))
                     .build()),
             TestEntityStatements.ie1_ie2_statement(),
             TestEntityStatements.ie2_op1(),
@@ -194,7 +194,7 @@ class DefaultFederationChainValidatorTest {
         TestEntityStatements.ta1_ie1_statement(),
         TestEntityStatements.ie1_ie2_statement()
             .constraintsClaim(ConstraintsClaim.builder()
-                .allowedLeafEntityTypes(List.of("openid_relying_party"))
+                .allowedEntityTypes(List.of("openid_relying_party"))
                 .build()),
         TestEntityStatements.ie2_op1(),
         TestEntityStatements.op1_conf()), null, ChainValidationException.class);

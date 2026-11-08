@@ -59,7 +59,7 @@ public class TrustMarkDelegation {
     this.subject = claimsSet.getSubject();
     this.issueTime = claimsSet.getIssueTime();
     this.expirationTime = claimsSet.getExpirationTime();
-    this.trustMarkId = (String) claimsSet.getClaim("id");
+    this.trustMarkType = (String) claimsSet.getClaim("trust_mark_type");
     this.ref = (String) claimsSet.getClaim("ref");
   }
 
@@ -81,7 +81,7 @@ public class TrustMarkDelegation {
 
   // Additional Trust Mark Delegation claims
   @Getter
-  private String trustMarkId;
+  private String trustMarkType;
 
   @Getter
   private String ref;
@@ -127,8 +127,8 @@ public class TrustMarkDelegation {
       return this;
     }
 
-    public TrustMarkDelegationBuilder trustMarkId(final String trustMarkId) {
-      this.trustMarkDelegation.trustMarkId = trustMarkId;
+    public TrustMarkDelegationBuilder trustMarkType(final String trustMarkType) {
+      this.trustMarkDelegation.trustMarkType = trustMarkType;
       return this;
     }
 
@@ -159,7 +159,7 @@ public class TrustMarkDelegation {
           .expirationTime(this.trustMarkDelegation.getExpirationTime())
           .issueTime(this.trustMarkDelegation.getIssueTime());
 
-      this.addClaims("trust_mark_id", this.trustMarkDelegation.trustMarkId, claimsSetBuilder);
+      this.addClaims("trust_mark_type", this.trustMarkDelegation.trustMarkType, claimsSetBuilder);
       this.addClaims("ref", this.trustMarkDelegation.ref, claimsSetBuilder);
 
       final JWTClaimsSet claimsSet = claimsSetBuilder.build();
@@ -168,7 +168,7 @@ public class TrustMarkDelegation {
       Objects.requireNonNull(claimsSet.getIssuer(), "Issuer must be present");
       Objects.requireNonNull(claimsSet.getSubject(), "Subject must be present");
       Objects.requireNonNull(claimsSet.getIssueTime(), "Issue time must be present");
-      Objects.requireNonNull(claimsSet.getClaim("trust_mark_id"), "Trust Mark ID must be present");
+      Objects.requireNonNull(claimsSet.getClaim("trust_mark_type"), "Trust Mark type must be present");
 
       final SignedJWT jwt = new SignedJWT(
           new JWSHeader.Builder(algorithm)

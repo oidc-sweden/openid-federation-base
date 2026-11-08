@@ -44,7 +44,11 @@ public class EntityStatement {
 
   /** The JWT header typ value of Entity Statements */
   public static final JOSEObjectType TYPE = new JOSEObjectType("entity-statement+jwt");
-  public static final String SUBJECT_ENTITY_CONFIGURATION_LOCATION_CLAIM_NAME = "subject_entity_configuration_location";
+  /**
+   * The name of the claim holding an alternative location of the subject's Entity Configuration, defined by OpenID
+   * Federation Entity Configuration Hosting 1.0.
+   */
+  public static final String EC_LOCATION_CLAIM_NAME = "ec_location";
 
   /**
    * Private constructor for the builder
@@ -139,8 +143,8 @@ public class EntityStatement {
     return this.definedParams.getTrustMarkOwners();
   }
 
-  public String getSubjectEntityConfigurationLocation() {
-    return this.definedParams.getSubjectEntityConfigurationLocation();
+  public String getEcLocation() {
+    return this.definedParams.getEcLocation();
   }
 
   public static EntityStatementBuilder builder() {

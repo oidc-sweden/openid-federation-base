@@ -45,12 +45,12 @@ public class TrustMarkIssuersBuilder {
   /**
    * Add trust mark and authorized issuers of this trust mark
    *
-   * @param trustMarkId id of the trust mark
+   * @param trustMarkType type identifier of the trust mark
    * @param issuers list of authorized issuers entity ID
    * @return this builder for cascading input
    */
-  public TrustMarkIssuersBuilder trustMark(final String trustMarkId, final List<String> issuers) {
-    this.trustMarkIssuers.put(trustMarkId, issuers);
+  public TrustMarkIssuersBuilder trustMark(final String trustMarkType, final List<String> issuers) {
+    this.trustMarkIssuers.put(trustMarkType, issuers);
     return this;
   }
 

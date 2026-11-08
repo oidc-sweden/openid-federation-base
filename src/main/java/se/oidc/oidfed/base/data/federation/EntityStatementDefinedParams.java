@@ -65,14 +65,18 @@ public class EntityStatementDefinedParams {
   @JsonProperty("trust_marks")
   private List<TrustMarkClaim> trustMarks;
 
-  @JsonProperty("trust_marks_issuers")
+  @JsonProperty("trust_mark_issuers")
   private Map<String, List<String>> trustMarkIssuers;
 
   @JsonProperty("trust_mark_owners")
   private Map<String, TrustMarkOwner> trustMarkOwners;
 
-  @JsonProperty("subject_entity_configuration_location")
-  private String subjectEntityConfigurationLocation;
+  /**
+   * Alternative location of the subject's Entity Configuration, serialized as {@code ec_location} according to
+   * OpenID Federation Entity Configuration Hosting 1.0. Only meaningful in a Subordinate Statement.
+   */
+  @JsonProperty("ec_location")
+  private String ecLocation;
 
   public static EntityStatementDefinedParamsBuilder builder() {
     return new EntityStatementDefinedParamsBuilder();
@@ -154,11 +158,22 @@ public class EntityStatementDefinedParams {
       return this;
     }
 
-    public EntityStatementDefinedParamsBuilder subjectEntityConfigurationLocation(
-        final String subjectEntityConfigurationLocation, final boolean critical) {
-      this.esDefinedParams.subjectEntityConfigurationLocation = subjectEntityConfigurationLocation;
+    /**
+     * Sets the {@code ec_location} claim, the alternative location of the subject's Entity Configuration.
+     * <p>
+     * Note that OpenID Federation Entity Configuration Hosting 1.0 states that this claim SHOULD NOT be marked
+     * critical, since Trust Chain validation does not depend on support for it. Pass {@code false} unless the
+     * federation it is issued in requires otherwise.
+     *
+     * @param ecLocation an https URL, or a data URL holding the Entity Configuration
+     * @param critical whether to list the claim in {@code crit}
+     * @return this builder
+     */
+    public EntityStatementDefinedParamsBuilder ecLocation(
+        final String ecLocation, final boolean critical) {
+      this.esDefinedParams.ecLocation = ecLocation;
       if (critical) {
-        this.addCriticalClaim(EntityStatement.SUBJECT_ENTITY_CONFIGURATION_LOCATION_CLAIM_NAME);
+        this.addCriticalClaim(EntityStatement.EC_LOCATION_CLAIM_NAME);
       }
       return this;
     }

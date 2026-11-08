@@ -40,7 +40,11 @@ public class ConstraintsClaim {
   @JsonProperty("naming_constraints")
   private NamingConstraints namingConstraints;
 
-  @JsonProperty("allowed_leaf_entity_types")
-  private List<String> allowedLeafEntityTypes;
+  /**
+   * Allowed Entity Type Identifiers, serialized as {@code allowed_entity_types}. Note that OpenID Federation 1.0
+   * applies this constraint to every Subordinate Entity, not only to Leaf Entities as earlier drafts did.
+   */
+  @JsonProperty("allowed_entity_types")
+  private List<String> allowedEntityTypes;
 
 }
