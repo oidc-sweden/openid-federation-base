@@ -46,6 +46,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -189,16 +191,6 @@ class DefaultFederationChainValidatorTest {
         TestEntityStatements.ie2_op1(),
         TestEntityStatements.op1_conf()), null, ChainValidationException.class);
 
-    this.performChainTest("Chain with entity type constraints error", List.of(
-        TestEntityStatements.ta1_conf(),
-        TestEntityStatements.ta1_ie1_statement(),
-        TestEntityStatements.ie1_ie2_statement()
-            .constraintsClaim(ConstraintsClaim.builder()
-                .allowedEntityTypes(List.of("openid_relying_party"))
-                .build()),
-        TestEntityStatements.ie2_op1(),
-        TestEntityStatements.op1_conf()), null, ChainValidationException.class);
-
     this.performChainTest("Mimimum chain", List.of(
         TestEntityStatements.ta1_conf()
             .constraintsClaim(ConstraintsClaim.builder()
@@ -209,6 +201,196 @@ class DefaultFederationChainValidatorTest {
         .opMetadataObject(TestMetadata.opMetadata_claims123)
         .build(), ChainValidationException.class);
 
+  }
+
+  /**
+   * The {@code allowed_entity_types} constraint is a removal of metadata and not a check, as specified in Section
+   * 6.2.3 of OpenID Federation 1.0. A chain whose subject has an Entity Type that the constraint does not allow is
+   * still valid, and the metadata of that Entity Type is removed from the resolved metadata.
+   */
+  @Test
+  void testEntityTypeConstraints() throws Exception {
+
+    // The subject is an OpenID Provider and the constraint allows openid_relying_party only, so all of its metadata
+    // is removed. The chain remains valid and the metadata policy processing must cope with the empty result.
+    final ChainValidationResult strippedResult = this.validateChain(List.of(
+        TestEntityStatements.ta1_conf(),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .allowedEntityTypes(List.of("openid_relying_party"))
+                .build()),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf()));
+    assertNull(strippedResult.getDeclaredMetadata().getOpMetadataObject());
+    assertNull(strippedResult.getPolicyProcessedMetadata().getOpMetadataObject());
+
+    // The same chain with a constraint that allows the Entity Type keeps the metadata
+    final ChainValidationResult retainedResult = this.validateChain(List.of(
+        TestEntityStatements.ta1_conf(),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .allowedEntityTypes(List.of("openid_relying_party", "openid_provider"))
+                .build()),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf()));
+    assertNotNull(retainedResult.getDeclaredMetadata().getOpMetadataObject());
+    assertNotNull(retainedResult.getPolicyProcessedMetadata().getOpMetadataObject());
+
+    // An empty array allows federation_entity only, so the OpenID Provider metadata is removed
+    final ChainValidationResult emptyConstraintResult = this.validateChain(List.of(
+        TestEntityStatements.ta1_conf(),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .allowedEntityTypes(List.of())
+                .build()),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf()));
+    assertNull(emptyConstraintResult.getDeclaredMetadata().getOpMetadataObject());
+
+    // Constraints of separate statements are applied independently, which for a removal amounts to an intersection.
+    // The superior allows both Entity Types and the subordinate allows only openid_relying_party, so the OpenID
+    // Provider metadata is removed and a subordinate cannot widen what a superior allowed.
+    final ChainValidationResult intersectedResult = this.validateChain(List.of(
+        TestEntityStatements.ta1_conf(),
+        TestEntityStatements.ta1_ie1_statement()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .allowedEntityTypes(List.of("openid_relying_party", "openid_provider"))
+                .build()),
+        TestEntityStatements.ie1_ie2_statement()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .allowedEntityTypes(List.of("openid_relying_party"))
+                .build()),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf()));
+    assertNull(intersectedResult.getDeclaredMetadata().getOpMetadataObject());
+
+    // A constraint declared by the Trust Anchor in its own Entity Configuration is honoured, consistent with how
+    // this implementation treats the other constraints.
+    final ChainValidationResult trustAnchorConstraintResult = this.validateChain(List.of(
+        TestEntityStatements.ta1_conf()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .allowedEntityTypes(List.of("openid_relying_party"))
+                .build()),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement(),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf()));
+    assertNull(trustAnchorConstraintResult.getDeclaredMetadata().getOpMetadataObject());
+
+    // Constraints are defined for Subordinate Statements only, so a constraint that the subject declares in its own
+    // Entity Configuration has no effect and cannot be used to strip its own metadata.
+    final ChainValidationResult selfConstraintResult = this.validateChain(List.of(
+        TestEntityStatements.ta1_conf(),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement(),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .allowedEntityTypes(List.of("openid_relying_party"))
+                .build())));
+    assertNotNull(selfConstraintResult.getDeclaredMetadata().getOpMetadataObject());
+
+    // A chain that declares no allowed_entity_types constraint anywhere allows every Entity Type
+    final ChainValidationResult unconstrainedResult = this.validateChain(List.of(
+        TestEntityStatements.ta1_conf(),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement(),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf()));
+    assertNotNull(unconstrainedResult.getDeclaredMetadata().getOpMetadataObject());
+  }
+
+  /**
+   * The {@code federation_entity} Entity Type is always allowed, MUST NOT be listed in the constraint and is never
+   * removed, as specified in Section 6.2.3 of OpenID Federation 1.0.
+   */
+  @Test
+  void testFederationEntityTypeIsNeverRemoved() throws Exception {
+
+    final EntityMetadataInfoClaim subjectMetadata = EntityMetadataInfoClaim.builder()
+        .opMetadataObject(TestMetadata.opMetadata_claims123)
+        .federationEntityMetadataObject(TestMetadata.federationEntityMetadata)
+        .build();
+
+    // A constraint that does not list federation_entity still keeps it, while the Entity Type that is not allowed
+    // is removed
+    final ChainValidationResult result = this.validateChain(List.of(
+        TestEntityStatements.ta1_conf(),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .allowedEntityTypes(List.of("openid_relying_party"))
+                .build()),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf().metadata(subjectMetadata)));
+    assertNull(result.getDeclaredMetadata().getOpMetadataObject());
+    assertNotNull(result.getDeclaredMetadata().getFederationEntityMetadataObject());
+    assertNotNull(result.getPolicyProcessedMetadata().getFederationEntityMetadataObject());
+
+    // An empty array allows federation_entity only, which is exactly what must remain
+    final ChainValidationResult emptyConstraintResult = this.validateChain(List.of(
+        TestEntityStatements.ta1_conf(),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement()
+            .constraintsClaim(ConstraintsClaim.builder()
+                .allowedEntityTypes(List.of())
+                .build()),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf().metadata(subjectMetadata)));
+    assertNull(emptyConstraintResult.getDeclaredMetadata().getOpMetadataObject());
+    assertNotNull(emptyConstraintResult.getDeclaredMetadata().getFederationEntityMetadataObject());
+  }
+
+  /**
+   * The metadata policy of an Entity Type that the constraints removed is never applied, since Section 6.2.3
+   * requires the removal to happen before metadata policies are applied.
+   */
+  @Test
+  void testPolicyOfRemovedEntityTypeIsNotApplied() throws Exception {
+
+    // This openid_provider policy demands a superset of scopes that the subject does not have, which fails chain
+    // validation while the Entity Type survives - the "Chain with invalid policy merge" case of testChainValidation.
+    final EntityMetadataInfoClaim failingOpPolicy = EntityMetadataInfoClaim.builder()
+        .opMetadataObject(serializer.toJsonObject(EntityTypeMetadataPolicy.builder()
+            .addMetadataParameterPolicy(
+                MetadataParameterPolicy.builder(PolicyParameterFormats.scopes_supported.toMetadataParameter())
+                    .add(SupersetOfPolicyOperator.OPERATOR_NAME, List.of("Bad1", "Bad2"))
+                    .build())
+            .build()))
+        .build();
+
+    // With the Entity Type removed by the constraint, the policy is never reached and the chain is valid
+    final ChainValidationResult result = this.validateChain(List.of(
+        TestEntityStatements.ta1_conf(),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement()
+            .policy(failingOpPolicy)
+            .constraintsClaim(ConstraintsClaim.builder()
+                .allowedEntityTypes(List.of("openid_relying_party"))
+                .build()),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf()));
+    assertNull(result.getDeclaredMetadata().getOpMetadataObject());
+    assertNull(result.getPolicyProcessedMetadata().getOpMetadataObject());
+
+    // Without the constraint the same chain fails on the policy, which is what makes the case above meaningful
+    assertThrows(ChainValidationException.class, () -> this.validateChain(List.of(
+        TestEntityStatements.ta1_conf(),
+        TestEntityStatements.ta1_ie1_statement(),
+        TestEntityStatements.ie1_ie2_statement()
+            .policy(failingOpPolicy),
+        TestEntityStatements.ie2_op1(),
+        TestEntityStatements.op1_conf())));
+  }
+
+  private ChainValidationResult validateChain(final List<TestEntityStatements.EsData.EsDataBuilder> builderChain)
+      throws Exception {
+    return federationChainValidator.validate(builderChain.stream()
+        .map(esDataBuilder -> TestEntityStatements.getEntityStatement(esDataBuilder.build()))
+        .toList());
   }
 
   void performChainTest(final String message, final List<TestEntityStatements.EsData.EsDataBuilder> builderChain,

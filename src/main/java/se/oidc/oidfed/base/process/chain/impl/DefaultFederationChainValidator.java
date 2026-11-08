@@ -44,19 +44,27 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Entity Statement chain validation implementation
  *
  * <p>
- * The definition of constraints is ambiguous. This implementation make two interpretations. allowed_entity_types
- * will ignore any presence of "federation_entity" as this type can be used by any role. Naming constraints will be
- * applied as URL prefix. Anything that matches the beginning of this URL prefix, matches the constraint (permitted and
- * excluded).
+ * Constraints are handled in two different ways, following Section 6.2 of OpenID Federation 1.0. max_path_length and
+ * naming_constraints are checks, and a chain that fails one of them is invalid. allowed_entity_types is not a check
+ * but a removal of metadata, specified in Section 6.2.3: the metadata of an Entity Type that the constraints do not
+ * allow is removed from the metadata of the chain subject, and the chain remains valid. A chain subject may therefore
+ * end up with federation_entity metadata only, or with no metadata at all, and it is left to the caller to decide
+ * whether the resolved metadata serves its purpose.
  * </p>
  * <p>
- * Also. No attempt to compare constraints is made. Instead. All constraints are individually processed against their
- * respective sub-path.
+ * Naming constraints are applied as URL prefix. Anything that matches the beginning of this URL prefix, matches the
+ * constraint (permitted and excluded).
+ * </p>
+ * <p>
+ * No attempt to compare constraints is made. Instead, all constraints are individually processed against their
+ * respective sub-path. The exception is allowed_entity_types, where independent application of each constraint
+ * amounts to the intersection of the declared sets.
  * </p>
  */
 @Slf4j
@@ -134,7 +142,12 @@ public class DefaultFederationChainValidator implements FederationChainValidator
 
     // Check EntityConfiguration vs EntityStatement ending
     // Check Authority hints (Entity Configuration)
-    final EntityMetadataInfoClaim targetEntityMetadata = this.getVerifiedLeafEntityStatement(chain);
+    final EntityMetadataInfoClaim collectedEntityMetadata = this.getVerifiedLeafEntityStatement(chain);
+
+    // Apply the allowed_entity_types constraints of the chain. This happens after the metadata of the direct
+    // superior has been applied and before metadata policies are applied, as required by Section 6.2.3.
+    final EntityMetadataInfoClaim targetEntityMetadata =
+        this.removeDisallowedEntityTypes(collectedEntityMetadata, chain);
 
     // Process metadata against policy
     final EntityMetadataInfoClaim policyProcessedMetadata =
@@ -214,6 +227,70 @@ public class DefaultFederationChainValidator implements FederationChainValidator
           .forEach(trustMarks::add);
     }
     return trustMarks;
+  }
+
+  /**
+   * Removes the metadata of every Entity Type that the {@code allowed_entity_types} constraints of the chain do not
+   * allow.
+   * <p>
+   * Section 6.2.3 of OpenID Federation 1.0 defines this constraint as a removal operation and not as a check. The
+   * metadata of a disallowed Entity Type is removed from the metadata of the chain subject and the chain remains
+   * valid, which is why this is not handled together with the constraints that do invalidate a chain. The
+   * {@code federation_entity} Entity Type is never removed, and a chain that declares no constraint at all allows
+   * every Entity Type. An empty array allows {@code federation_entity} only, so an empty set of allowed Entity Types
+   * must stay distinguishable from no constraint.
+   * <p>
+   * Section 6.2 states that the {@code constraints} claim of each Subordinate Statement is applied independently. For
+   * a removal operation that amounts to the intersection of the declared sets, which also gives the property that a
+   * subordinate cannot reintroduce an Entity Type that one of its superiors has removed.
+   * <p>
+   * Note that the subject's own Entity Configuration, the last statement of the chain, is not consulted for
+   * constraints. Constraints are defined for Subordinate Statements only.
+   *
+   * @param metadata the metadata of the chain subject, with the metadata of its direct superior applied
+   * @param chain the ordered chain, Trust Anchor first
+   * @return the metadata with the metadata of all disallowed Entity Types removed
+   */
+  private EntityMetadataInfoClaim removeDisallowedEntityTypes(final EntityMetadataInfoClaim metadata,
+      final List<EntityStatement> chain) {
+
+    if (metadata == null) {
+      return null;
+    }
+
+    // A null set means that no statement declared the constraint. An empty set means that only federation_entity
+    // is allowed.
+    Set<String> allowedEntityTypes = null;
+    for (final EntityStatement entityStatement : chain.subList(0, chain.size() - 1)) {
+      final ConstraintsClaim constraints = entityStatement.getConstraints();
+      if (constraints == null || constraints.getAllowedEntityTypes() == null) {
+        continue;
+      }
+      final Set<String> declaredEntityTypes = new HashSet<>(constraints.getAllowedEntityTypes());
+      if (allowedEntityTypes == null) {
+        allowedEntityTypes = declaredEntityTypes;
+      }
+      else {
+        allowedEntityTypes.retainAll(declaredEntityTypes);
+      }
+    }
+    if (allowedEntityTypes == null) {
+      return metadata;
+    }
+
+    final Map<String, Object> metadataJsonObject = new HashMap<>(OidcUtils.toJsonObject(metadata));
+    final Set<String> permittedEntityTypes = allowedEntityTypes;
+    final List<String> removedEntityTypes = metadataJsonObject.keySet().stream()
+        // federation_entity is always allowed and is never removed
+        .filter(entityType -> !EntityMetadataInfoClaim.FEDERATION_ENTITY.equals(entityType))
+        .filter(entityType -> !permittedEntityTypes.contains(entityType))
+        .toList();
+    if (removedEntityTypes.isEmpty()) {
+      return metadata;
+    }
+    removedEntityTypes.forEach(metadataJsonObject::remove);
+    log.debug("Removed metadata of Entity Types not allowed by the constraints of the chain: {}", removedEntityTypes);
+    return OidcUtils.readJsonObject(metadataJsonObject, EntityMetadataInfoClaim.class);
   }
 
   private EntityMetadataInfoClaim applyMetadataPolicy(final EntityMetadataInfoClaim targetMetadata,
@@ -441,23 +518,15 @@ public class DefaultFederationChainValidator implements FederationChainValidator
       return;
     }
 
-    // Extract constraints components
+    // Extract constraints components. Note that allowed_entity_types is not handled here, since Section 6.2.3
+    // defines it as a removal of metadata rather than as a check that can invalidate a chain. It is applied by
+    // removeDisallowedEntityTypes during metadata resolution.
     final Integer maxPathLength = constraints.getMaxPathLength();
-    final List<String> allowedEntityTypes = constraints.getAllowedEntityTypes();
     final NamingConstraints namingConstraints = Optional.ofNullable(constraints.getNamingConstraints())
         .orElse(new NamingConstraints());
     final List<String> excluded = namingConstraints.getExcluded();
     final List<String> permitted = namingConstraints.getPermitted();
     final EntityStatement leafStatement = subordinateStatements.get(subordinateStatements.size() - 1);
-    final EntityMetadataInfoClaim leafMetadata = Optional.ofNullable(leafStatement.getMetadata())
-        .orElse(EntityMetadataInfoClaim.builder().build());
-    final Map<String, Object> leafEntityMetadataJsonObject = OidcUtils.toJsonObject(leafMetadata);
-    final List<String> leafEntityTypes = leafEntityMetadataJsonObject.keySet().stream()
-        .filter(s -> !"federation_entity".equals(s))
-        .filter(
-            s -> leafEntityMetadataJsonObject.get(s) != null && !((Map<?, ?>) leafEntityMetadataJsonObject.get(
-                s)).isEmpty())
-        .toList();
     final List<String> subjectEntityIdentifiers = subordinateStatements.stream()
         .map(EntityStatement::getSubject)
         .toList();
@@ -491,12 +560,6 @@ public class DefaultFederationChainValidator implements FederationChainValidator
       }
     }
 
-    // Check leaf entity types
-    if (allowedEntityTypes != null && !allowedEntityTypes.isEmpty()) {
-      if (!new HashSet<>(allowedEntityTypes).containsAll(leafEntityTypes)) {
-        throw new ChainValidationException("Leaf entity type constraints violation");
-      }
-    }
   }
 
   private void checkSignatures(final List<EntityStatement> chain) throws ChainValidationException {

@@ -37,7 +37,11 @@ public class ChainValidationResult {
   /** The validated chain */
   private List<EntityStatement> validatedChain;
 
-  // The declared metadata of the target
+  /**
+   * The declared metadata of the target, with the metadata of its direct superior applied and with the metadata of
+   * any Entity Type removed that the {@code allowed_entity_types} constraints of the chain do not allow. Metadata
+   * policies have not been applied.
+   */
   private EntityMetadataInfoClaim declaredMetadata;
 
   // Process metadata against policy
